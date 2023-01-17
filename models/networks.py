@@ -196,10 +196,7 @@ class SetVAE(nn.Module):
         :param bottom_up_h: List([Tensor([B, M, D])]) in top-down order
         :return:
         """
-        print("Cardinality in top_down: ", cardinality)
         o, o_mask = self.init_set(cardinality)
-        print("DO I EVER MADE IT HERE?")
-        print("TD number of unmasked elements in model output: ", (~o_mask).sum(-1))
         o = self.pre_decoder(o, o_mask)
         alphas, posteriors, kls = [], [(o, None, None)], []
         for idx, layer in enumerate(get_module(self.gpu, self.decoder)):
@@ -224,7 +221,6 @@ class SetVAE(nn.Module):
         bup = self.bottom_up(x, x_mask)
         tdn = self.top_down((~x_mask).sum(-1), list(reversed(bup['features'])))
         o, o_mask = self.postprocess(tdn['set'], tdn['set_mask'])
-        print("FWD number of unmasked elements in model output: ", (~o_mask).sum(-1))
         return {'set': o, 'set_mask': o_mask,
                 'posteriors': tdn['posteriors'], 'kls': tdn['kls'],
                 'alphas': (bup['alphas'], tdn['alphas'])}

@@ -57,13 +57,11 @@ class InitialSet(nn.Module):
         :param hold_initial_set
         :return: Tensor([B, N, D])
         """
-        print("HI FROM INITIAL SET")
         bsize = output_sizes.shape[0]
         if hold_initial_set:  # [B, N]
             x_mask = get_mask(output_sizes, self.max_outputs)
         else:
             x_mask = sample_mask(output_sizes, self.max_outputs)
-        print("I JUST DEFINED THE MASK: ", (~x_mask).sum(-1))
         if hold_seed is not None:  # [B, N, Ds]
             torch.random.manual_seed(hold_seed)
             eps = torch.randn([1, self.max_outputs, self.dim_seed]).to(x_mask.device).repeat(bsize, 1, 1)
@@ -93,8 +91,6 @@ class InitialSet(nn.Module):
                 x = mixture.sample((output_sizes.size(0), self.max_outputs))
 
         x = self.output(x)  # [B, N, D]
-        print("mask shape in initial_set: ", x_mask.shape)
-        print("sum of x_mask in initial_set: ", (~x_mask).sum(-1))
         return x, x_mask
 
     def multi_gpu_wrapper(self, f):
