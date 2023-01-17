@@ -57,12 +57,13 @@ class InitialSet(nn.Module):
         :param hold_initial_set
         :return: Tensor([B, N, D])
         """
+        print("HI FROM INITIAL SET")
         bsize = output_sizes.shape[0]
         if hold_initial_set:  # [B, N]
             x_mask = get_mask(output_sizes, self.max_outputs)
         else:
             x_mask = sample_mask(output_sizes, self.max_outputs)
-
+        print("I JUST DEFINED THE MASK: ", (~x_mask).sum(-1))
         if hold_seed is not None:  # [B, N, Ds]
             torch.random.manual_seed(hold_seed)
             eps = torch.randn([1, self.max_outputs, self.dim_seed]).to(x_mask.device).repeat(bsize, 1, 1)
@@ -92,6 +93,8 @@ class InitialSet(nn.Module):
                 x = mixture.sample((output_sizes.size(0), self.max_outputs))
 
         x = self.output(x)  # [B, N, D]
+        print("mask shape in initial_set: ", x_mask.shape)
+        print("sum of x_mask in initial_set: ", (~x_mask).sum(-1))
         return x, x_mask
 
     def multi_gpu_wrapper(self, f):
@@ -169,7 +172,7 @@ class ResidualAttention(nn.Module):
         y = masked_fill(y.clone(), y_mask, 0.)
         q = self.fc_q(x)  # [B, N, Dv]
         k = self.fc_k(y)  # [B, M, Dv]
-        v = self.fc_v(y)  # [B, M, Dv]
+        v = self.fc_v(y)  # [B, M, Dv]        
         q = masked_fill(q, x_mask, 0.)
         k = masked_fill(k, y_mask, 0.)
         v = masked_fill(v, y_mask, 0.)
@@ -200,7 +203,7 @@ class AttentiveBlock(nn.Module):
         self.att2 = ResidualAttention(dim_in, dim_out, dim_out, num_heads, ln, dropout_p)
 
     def project(self, x, x_mask=None):
-        i = self.i.repeat(x.shape[0], 1, 1)  # [B, M, D]
+        i = self.i.repeat(x.shape[0], 1, 1)  # inducing points [B, M, D]
         h, alpha = self.att1(i, x, None, x_mask, get_alpha=True)  # [B, M, D], [H, B, M, N]
         return h, alpha.transpose(2, 3)  # [B, M, D], [H, B, N, M]
 

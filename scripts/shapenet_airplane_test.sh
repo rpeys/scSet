@@ -9,8 +9,8 @@ hidden_dim=64
 num_heads=4
 
 dataset_type=shapenet15k
-log_name=gen/shapenet15k-airplane/camera-ready
-shapenet_data_dir="/data4/ShapeNet/ShapeNetCore.v2.PC15k"
+log_name=/data/rna_rep_learning/shapenet_ckpts/checkpoints/gen/shapenet15k-airplane/camera-ready
+shapenet_data_dir="/data/rna_rep_learning/ShapeNetCore.v2.PC15k/"
 epoch=8000
 seed=34678
 

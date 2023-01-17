@@ -13,10 +13,8 @@ def train_one_epoch(epoch, model, criterion, optimizer, args, train_loader, avg_
     model.train()
     criterion.train()
     beta = None
-
     for bidx, data in enumerate(train_loader):
         step = bidx + len(train_loader) * epoch
-
         gt, gt_mask = data['set'], data['set_mask']
         gt = gt.cuda(non_blocking=True)
         gt_mask = gt_mask.cuda(non_blocking=True)

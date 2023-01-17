@@ -153,6 +153,7 @@ def main_worker(save_dir, args):
         if args.local_rank == 0:
             # evaluate on the validation set
             if epoch % args.val_freq == 0 and epoch != 0:
+                print("running validation...")
                 model.eval()
                 with torch.no_grad():
                     val_res = validate(model.module, args, val_loader, epoch, logger, save_dir)
@@ -163,12 +164,14 @@ def main_worker(save_dir, args):
                             logger.add_scalar(f'val_sample/{k}', v, epoch - 1)
 
         # train for one epoch
+        print("training epoch {}...".format(epoch))
         train_one_epoch(epoch, model, criterion, optimizer, args, train_loader, avg_meters, logger)
 
         # Only on HEAD process
         if args.local_rank == 0:
             # save checkpoints
             if (epoch + 1) % args.save_freq == 0:
+                print("saving checkpoint...")
                 if args.eval:
                     validate_reconstruct_l2(epoch, val_loader, model, criterion, args, logger)
                 save(model.module, model.optimizer, model.lr_scheduler, epoch + 1,
@@ -178,6 +181,7 @@ def main_worker(save_dir, args):
 
             # save visualizations
             if (epoch + 1) % args.viz_freq == 0:
+                print("saving visualizations...")
                 with torch.no_grad():
                     visualize(model.module, args, val_loader, epoch, logger)
 
@@ -186,6 +190,7 @@ def main_worker(save_dir, args):
         if logger is not None and args.local_rank == 0:
             logger.add_scalar('train lr', model.lr_scheduler.get_last_lr()[0], epoch)
 
+    print("running validation...")
     model.eval()
     if args.local_rank == 0:
         with torch.no_grad():

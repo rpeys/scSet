@@ -91,8 +91,8 @@ def add_args(parser):
 
     # data options
     parser.add_argument('--dataset_type', default='shapenet15k', type=str,
-                        help='Dataset to train on, one of ShapeNet / MNIST / MultiMNIST',
-                        choices=['shapenet15k', 'mnist', 'multimnist'])
+                        help='Dataset to train on, one of ShapeNet / MNIST / MultiMNIST / RNAseq',
+                        choices=['shapenet15k', 'mnist', 'multimnist', 'rnaseq'])
     parser.add_argument('--num_workers', type=int, default=4,
                         help='Number of data loading threads')
     # ShapeNet options
@@ -129,6 +129,17 @@ def add_args(parser):
                         help='Path to MultiMNIST image data')
     parser.add_argument('--multimnist_cache', default=None, type=str,
                         help='Directory to cache MultiMNIST image data')
+    # RNAseq options
+    parser.add_argument('--h5ad_loc', default=None, type=str,
+                        help='Path to the h5ad file containing your anndata object')
+    #not implemented, PCA hardcoded in RNAseq.py:
+    #parser.add_argument('--adata_layer', default='pca', type=str,
+    #                    help='Layer of the anndata object to use. Default pca.',
+    #                    choices=['pca', 'lognorm', 'raw'])
+    parser.add_argument('--num_pcs', default=20, type=int,
+                        help='Number of principal components to use. Default 20.')   
+    parser.add_argument('--data_name', type=str,
+                        help='Name of RNAseq dataset.')   
 
     # logger options
     parser.add_argument('--log_name', default=None, type=str, help="Name for the log dir")
