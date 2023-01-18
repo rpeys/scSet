@@ -157,7 +157,8 @@ def main_worker(save_dir, args):
                 with torch.no_grad():
                     val_res = validate(model.module, args, val_loader, epoch, criterion, logger, save_dir)
                     for k, v in val_res.items():
-                        v = torch.tensor(v).cpu().detach().item()
+                        if not isinstance(v, float):
+                            v = v.cpu().detach().item()
                         send_slack(f'{k}:{v}, Epoch {epoch - 1}')
                         if logger is not None and v is not None:
                             logger.add_scalar(f'val_sample/{k}', v, epoch - 1)
@@ -197,7 +198,8 @@ def main_worker(save_dir, args):
         with torch.no_grad():
             val_res = validate(model.module, args, val_loader, epoch, criterion, logger, save_dir)
             for k, v in val_res.items():
-                v = torch.tensor(v).cpu().detach().item()
+                if not isinstance(v, float):
+                    v = v.cpu().detach().item()
                 send_slack(f'{k}:{v}, Epoch {epoch}')
                 if logger is not None and v is not None:
                     logger.add_scalar(f'val_sample/{k}', v, epoch)
