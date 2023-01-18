@@ -140,6 +140,8 @@ def add_args(parser):
                         help='Number of principal components to use. Default 20.')   
     parser.add_argument('--data_name', type=str,
                         help='Name of RNAseq dataset.')   
+    parser.add_argument('-pid_col', type=str, default="pid",
+                        help='Name of column that contains patient identifiers.')  
 
     # logger options
     parser.add_argument('--log_name', default=None, type=str, help="Name for the log dir")

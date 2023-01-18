@@ -59,6 +59,7 @@ def train_one_epoch(epoch, model, criterion, optimizer, args, train_loader, avg_
         # Only main process writes logs.
         avg_meters['kl_avg_meter'].update(kl_loss.detach().item(), data['set'].size(0))
         avg_meters['l2_avg_meter'].update(l2_loss.detach().item(), data['set'].size(0))
+        avg_meters['totalloss_avg_meter'].update(loss.detach().item(), data['set'].size(0))
 
         if step % args.log_freq == 0:
             duration = time.time() - start_time
@@ -71,6 +72,7 @@ def train_one_epoch(epoch, model, criterion, optimizer, args, train_loader, avg_
             if logger is not None:
                 logger.add_scalar('train kl loss', kl_loss.detach().item(), step)
                 logger.add_scalar('train l2 loss', l2_loss.detach().item(), step)
+                logger.add_scalar('train total loss', loss.detach().item(), step)
                 logger.add_scalar('grad_norm', total_norm, step)
 
                 fig = plt.figure()
@@ -90,9 +92,11 @@ def train_one_epoch(epoch, model, criterion, optimizer, args, train_loader, avg_
     if logger is not None:
         logger.add_scalar('train kl loss (epoch)', avg_meters['kl_avg_meter'].avg, epoch)
         logger.add_scalar('train l2 loss (epoch)', avg_meters['l2_avg_meter'].avg, epoch)
+        logger.add_scalar('train total loss (epoch)', avg_meters['totalloss_avg_meter'].avg, epoch)
         logger.add_scalar('beta (epoch)', beta, epoch)
         avg_meters['kl_avg_meter'].reset()
         avg_meters['l2_avg_meter'].reset()
+        avg_meters['totalloss_avg_meter'].reset()
 
 
 def validate(model, args, val_loader, epoch, criterion, logger, save_dir):

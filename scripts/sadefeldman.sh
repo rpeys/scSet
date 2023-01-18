@@ -9,6 +9,7 @@ hidden_dim=64
 num_heads=4
 adata_layer="pca"
 batch_size=8
+pid_col="pid"
 
 lr=1e-3
 beta=1e-2
@@ -39,6 +40,7 @@ deepspeed train.py \
   --data_name ${data_name} \
   --h5ad_loc ${sadefeldman_data} \
   --num_pcs ${num_pcs} \
+  --pid_col ${pid_col}
   --resume_optimizer \
   --save_freq 100 \
   --viz_freq 10 \

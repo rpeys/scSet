@@ -18,7 +18,7 @@ def init_np_seed(worker_id):
 
 
 class scData(torch.utils.data.Dataset):
-    def __init__(self, adata=None, name="unnamed_rnaseqdata", pids = None, num_components = None, celltypes=None, cache_dir=None, #h5ad_loc="/data/rna_rep_learning/sadefeldman/processed_adata_sparse.h5ad", 
+    def __init__(self, adata=None, name="unnamed_rnaseqdata", pid_col="pid", pids = None, num_components = None, celltypes=None, cache_dir=None, #h5ad_loc="/data/rna_rep_learning/sadefeldman/processed_adata_sparse.h5ad", 
                  distributed=False, local_rank=None):
         """
         :param name: name of the dataset
@@ -29,11 +29,11 @@ class scData(torch.utils.data.Dataset):
         self.num_components = num_components #the number of principal components to use
         self.pids = pids
         if self.pids is None:
-           self.pids = adata.obs.pid.unique() #use all PIDs if none are specified
+           self.pids = adata.obs[pid_col].unique() #use all PIDs if none are specified
         self.celltypes = celltypes
         self.in_tr_sample_size = None
         self.in_te_sample_size = None
-        self.maxcells = self.adata.obs.pid.value_counts().max() #max cells across all patients, not only the PIDs passed in
+        self.maxcells = self.adata.obs[pid_col].value_counts().max() #max cells across all patients, not only the PIDs passed in
         self.subdirs = None
         self.scale = None
         self.random_subsample = None
@@ -51,7 +51,7 @@ class scData(torch.utils.data.Dataset):
         print("Processing dataset {}...".format(self.name))
         data = []
         for idx, pid in enumerate(self.pids): #train/test inds subset the PIDs
-            pid_adata = self.adata[self.adata.obs.pid==pid,:]
+            pid_adata = self.adata[self.adata.obs[pid_col]==pid,:]
             # s is a tensor of size [N, Di] where N is the max number of cells and Di is the number of principal components
             s = torch.zeros(self.maxcells, self.num_components)
             s[:pid_adata.obsm['X_pca'].shape[0],:] = torch.from_numpy(pid_adata.obsm['X_pca'][:,:self.num_components])
@@ -104,10 +104,10 @@ def collate_fn(batch):
 
 def build(args):
     full_adata = sc.read_h5ad(args.h5ad_loc)
-
-    num_pids = len(full_adata.obs.pid.unique())
+    pid_col=args.pid_col
+    num_pids = len(full_adata.obs[pid_col].unique())
     print("num_pids: " + str(num_pids))
-    train_pids, val_pids = torch.utils.data.random_split(full_adata.obs.pid.unique(), [round(0.8*num_pids), round(0.2*num_pids)], generator=torch.Generator().manual_seed(0))
+    train_pids, val_pids = torch.utils.data.random_split(full_adata.obs[pid_col].unique(), [round(0.8*num_pids), round(0.2*num_pids)], generator=torch.Generator().manual_seed(0))
     train_dataset = scData(adata=full_adata, name=args.data_name+"_train", pids=train_pids, num_components=args.num_pcs, distributed=args.distributed, local_rank=args.local_rank, cache_dir=os.path.dirname(args.h5ad_loc))
     val_dataset = scData(adata=full_adata, name=args.data_name+"_val", pids=val_pids, num_components=args.num_pcs, distributed=args.distributed, local_rank=args.local_rank, cache_dir=os.path.dirname(args.h5ad_loc))
 
