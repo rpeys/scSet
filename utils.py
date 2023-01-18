@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import rgb_to_hsv, hsv_to_rgb
 
 import torch
-
+from models.criterion import ChamferCriterion
 
 class AverageValueMeter(object):
     """Computes and stores the average and current value"""
@@ -358,7 +358,7 @@ def validate_reconstruct_l2(epoch, val_loader, model, criterion, args, logger):
         logger.add_scalar('VAL kl loss (epoch)', kl_meter.avg, epoch)
         logger.add_scalar('VAL recon loss (epoch)', l2_meter.avg, epoch)
         print('Log sent')
-    return kl_meter.avg, l2_meter.avg
+    return {'kl_avg': kl_meter.avg, 'l2_avg': l2_meter.avg}
 
 
 @torch.no_grad()
@@ -495,7 +495,7 @@ def validate_sample(loader, model, args, max_samples, save_dir):
 
 
 @torch.no_grad()
-def visualize_reconstruct(loader, model, args, logger, epoch):
+def visualize_reconstruct(loader, model, args, logger, epoch, min_samples=8):
     data = next(iter(loader))
     gt, gt_mask, gt_c = data['set'], data['set_mask'], data['cardinality']
     gt = gt.cuda() if args.gpu is None else gt.cuda(args.gpu)
@@ -513,8 +513,8 @@ def visualize_reconstruct(loader, model, args, logger, epoch):
     output = model(gt, gt_mask)
     # model forward already do postprocessing
     recon, recon_mask = output['set'], output['set_mask']
-    assert gt.shape[0] >= 16
-    gt, gt_mask = pad(gt[:16, ...], gt_mask[:16, ...], model.max_outputs)
+    assert gt.shape[0] >= min_samples
+    gt, gt_mask = pad(gt[:min_samples, ...], gt_mask[:min_samples, ...], model.max_outputs)
 
     if args.standardize_per_shape:
         offset = data['offset']
@@ -523,8 +523,8 @@ def visualize_reconstruct(loader, model, args, logger, epoch):
 
     denorm_gt = gt * s + m
     denorm_recon = recon * s + m
-    logger.add_images('val_reconstruction', draw(torch.cat((denorm_gt, denorm_recon[:16, ...]), dim=0),
-                                                 torch.cat((gt_mask, recon_mask[:16, ...]), dim=0)), epoch)
+    logger.add_images('val_reconstruction', draw(torch.cat((denorm_gt, denorm_recon[:min_samples, ...]), dim=0),
+                                                 torch.cat((gt_mask, recon_mask[:min_samples, ...]), dim=0)), epoch)
 
     # reconstruction enc/dec attention
     gt, gt_mask, gt_c = gt[:4], gt_mask[:4], gt_c[:4]
@@ -577,13 +577,13 @@ def visualize_sample(loader, model, args, logger, epoch):
     denorm_gen = gen * s + m
     logger.add_images('val_samples', draw(denorm_gen[:32, ...], gen_mask[:32, ...]), epoch)
 
-    if model.max_outputs == 400:
-        cardinality = torch.tensor([100, 120, 180, 200, 240, 300, 350, 400] * 4).to(gt_c.device)
-    elif model.max_outputs == 600:
-        cardinality = torch.tensor([200, 250, 300, 350, 400, 450, 500, 550] * 4).to(gt_c.device)
-    elif model.max_outputs == 30:
+    if model.max_outputs <= 30:
         cardinality = torch.tensor([3, 6, 8, 10, 13, 16, 20, 30] * 4).to(gt_c.device)
-    elif model.max_outputs == 2500:
+    elif model.max_outputs <= 400:
+        cardinality = torch.tensor([100, 120, 180, 200, 240, 300, 350, 400] * 4).to(gt_c.device)
+    elif model.max_outputs <= 600:
+        cardinality = torch.tensor([200, 250, 300, 350, 400, 450, 500, 550] * 4).to(gt_c.device)
+    elif model.max_outputs <= 2500:
         cardinality = torch.tensor([1000, 1200, 1400, 1600, 1800, 2048, 2200, 2500] * 4).to(gt_c.device)
     else:
         cardinality = torch.tensor([1000, 1500, 2000, 2500, 3000, 3500, 4000, 5000] * 4).to(gt_c.device)

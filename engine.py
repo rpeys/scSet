@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 import torch
 
-from utils import validate_reconstruct, validate_sample, \
+from utils import validate_reconstruct, validate_reconstruct_l2, validate_sample, \
     visualize_reconstruct, visualize_sample, visualize_mix, visualize_interpolate
 
 
@@ -95,10 +95,11 @@ def train_one_epoch(epoch, model, criterion, optimizer, args, train_loader, avg_
         avg_meters['l2_avg_meter'].reset()
 
 
-def validate(model, args, val_loader, epoch, logger, save_dir):
+def validate(model, args, val_loader, epoch, criterion, logger, save_dir):
     model.eval()
     with torch.no_grad():
-        val_res = validate_reconstruct(val_loader, model, args, args.max_validate_shapes, save_dir)
+        #val_res = validate_reconstruct(val_loader, model, args, args.max_validate_shapes, save_dir) #orig code used this line; broke on rnaseq data due to unmask() function
+        val_res = validate_reconstruct_l2(epoch, val_loader, model, criterion, args, logger)
         for k, v in val_res.items():
             if not isinstance(v, float):
                 v = v.cpu().detach().item()

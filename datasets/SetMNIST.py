@@ -70,7 +70,7 @@ class SetMNIST(torch.utils.data.Dataset):
             print("Max number of points: (test)%d" % self.te_sample_size)
 
     def image_to_set(self, image):
-        xy = (image.squeeze(0) > self.threshold).nonzero().float()  # [M, 2]
+        xy = (image.squeeze(0) > self.threshold).nonzero().float()  # [M, 2] where M is number elements in set (in this case number of nonzero coordinates)
         xy = xy[torch.randperm(xy.size(0)), :]  # [M, 2]
         xy = xy + torch.zeros_like(xy).uniform_(0., 1.)
         c = xy.size(0)

@@ -12,7 +12,7 @@ batch_size=8
 
 lr=1e-3
 beta=1e-2
-epochs=200
+epochs=2000
 kl_warmup_epochs=50
 scheduler="linear"
 dataset_type=rnaseq
@@ -40,7 +40,7 @@ deepspeed train.py \
   --h5ad_loc ${sadefeldman_data} \
   --num_pcs ${num_pcs} \
   --resume_optimizer \
-  --save_freq 10 \
+  --save_freq 100 \
   --viz_freq 10 \
   --log_freq 10 \
   --val_freq 10 \
@@ -49,7 +49,8 @@ deepspeed train.py \
   --ln \
   --seed 42 \
   --distributed \
-  --deepspeed_config batch_size_8.json
+  --deepspeed_config batch_size_8.json \
+  --val_recon_only
 
 echo "Done"
 exit 0

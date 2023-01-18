@@ -153,18 +153,16 @@ def main_worker(save_dir, args):
         if args.local_rank == 0:
             # evaluate on the validation set
             if epoch % args.val_freq == 0 and epoch != 0:
-                print("running validation...")
                 model.eval()
                 with torch.no_grad():
-                    val_res = validate(model.module, args, val_loader, epoch, logger, save_dir)
+                    val_res = validate(model.module, args, val_loader, epoch, criterion, logger, save_dir)
                     for k, v in val_res.items():
-                        v = v.cpu().detach().item()
+                        v = torch.tensor(v).cpu().detach().item()
                         send_slack(f'{k}:{v}, Epoch {epoch - 1}')
                         if logger is not None and v is not None:
                             logger.add_scalar(f'val_sample/{k}', v, epoch - 1)
 
         # train for one epoch
-        print("training epoch {}...".format(epoch))
         train_one_epoch(epoch, model, criterion, optimizer, args, train_loader, avg_meters, logger)
 
         # Only on HEAD process
@@ -180,10 +178,13 @@ def main_worker(save_dir, args):
                      Path(save_dir) / 'checkpoint-latest.pt')
 
             # save visualizations
-            if (epoch + 1) % args.viz_freq == 0:
-                print("saving visualizations...")
-                with torch.no_grad():
-                    visualize(model.module, args, val_loader, epoch, logger)
+            if args.dataset_type=="rnaseq":
+                pass
+            else:
+                if (epoch + 1) % args.viz_freq == 0:
+                    print("saving visualizations...")
+                    with torch.no_grad():
+                        visualize(model.module, args, val_loader, epoch, logger)
 
         # adjust the learning rate
         model.lr_scheduler.step()
@@ -194,9 +195,9 @@ def main_worker(save_dir, args):
     model.eval()
     if args.local_rank == 0:
         with torch.no_grad():
-            val_res = validate(model.module, args, val_loader, epoch, logger, save_dir)
+            val_res = validate(model.module, args, val_loader, epoch, criterion, logger, save_dir)
             for k, v in val_res.items():
-                v = v.cpu().detach().item()
+                v = torch.tensor(v).cpu().detach().item()
                 send_slack(f'{k}:{v}, Epoch {epoch}')
                 if logger is not None and v is not None:
                     logger.add_scalar(f'val_sample/{k}', v, epoch)
