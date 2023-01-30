@@ -124,11 +124,16 @@ class DecoderBlock(AttentiveBlock):
 
 
 class SetVAE(nn.Module):
-    def __init__(self, args):
+    def __init__(self, args, max_outputs_empirical=None):
         super().__init__()
         self.gpu = args.gpu
         self.input_dim = args.input_dim
-        self.max_outputs = args.max_outputs
+        if args.max_outputs is not None:
+            self.max_outputs = args.max_outputs  
+        elif max_outputs_empirical is not None:
+            self.max_outputs = max_outputs_empirical
+        else:
+            self.max_outputs = 2500
         self.fixed_gmm = args.fixed_gmm
         self.train_gmm = args.train_gmm
         self.init_dim = args.init_dim

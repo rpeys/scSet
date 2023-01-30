@@ -55,7 +55,10 @@ def main_worker(save_dir, args):
     deepspeed.init_distributed(dist_backend='nccl')
     torch.cuda.set_device(args.local_rank)
 
-    model = SetVAE(args)
+    # initialize datasets and loaders
+    train_dataset, val_dataset, train_loader, val_loader = get_datasets(args)
+
+    model = SetVAE(args, train_dataset.maxcells)
     parameters = model.parameters()
 
     n_parameters = sum(p.numel() for p in parameters if p.requires_grad)
@@ -72,8 +75,7 @@ def main_worker(save_dir, args):
 
     optimizer, criterion = model.make_optimizer(args)
 
-    # initialize datasets and loaders
-    train_dataset, val_dataset, train_loader, val_loader = get_datasets(args)
+
 
     # initialize the learning rate scheduler
     if args.scheduler == 'exponential':
@@ -142,7 +144,8 @@ def main_worker(save_dir, args):
     # main training loop
     avg_meters = {
         'kl_avg_meter': AverageValueMeter(),
-        'l2_avg_meter': AverageValueMeter()
+        'l2_avg_meter': AverageValueMeter(),
+        'totalloss_avg_meter': AverageValueMeter()
     }
 
     assert args.distributed

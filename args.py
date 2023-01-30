@@ -6,7 +6,7 @@ def add_args(parser):
     # model architecture options
     parser.add_argument('--input_dim', type=int, default=3,
                         help='Number of input dimensions (3 for 3D point clouds)')
-    parser.add_argument('--max_outputs', type=int, default=2500,
+    parser.add_argument('--max_outputs', type=int, default=None,#2500,
                         help='Number of maximum output elements')
     parser.add_argument('--init_dim', type=int, default=64,
                         help='Number of dimensions for each initial set element')

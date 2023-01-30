@@ -25,7 +25,6 @@ deepspeed train.py \
   --kl_warmup_epochs ${kl_warmup_epochs} \
   --input_dim ${num_pcs} \
   --batch_size ${batch_size} \
-  --max_outputs ${max_outputs} \
   --init_dim ${init_dim} \
   --n_mixtures ${n_mixtures} \
   --z_dim ${z_dim} \
@@ -52,7 +51,9 @@ deepspeed train.py \
   --seed 42 \
   --distributed \
   --deepspeed_config batch_size_8.json \
-  --val_recon_only
+  --val_recon_only \
 
 echo "Done"
 exit 0
+
+#--max_outputs ${max_outputs} \
