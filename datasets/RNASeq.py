@@ -63,7 +63,8 @@ class scData(torch.utils.data.Dataset):
                 'idx': idx,
                 'pid': pid,
                 'set': s, 'mask': s_mask,
-                'mean': 0, 'std': 1      #'response': pid_adata.obs.response[0], 'therapy': pid_adata.obs.therapy[0]      
+                'mean': 0, 'std': 1,      #'response': pid_adata.obs.response[0], 'therapy': pid_adata.obs.therapy[0]      
+                'sid':None, 'mid':None
                 }) 
         torch.save(data, cache_path)
         print("Done! Saved data to %s" % cache_path)

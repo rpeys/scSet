@@ -185,7 +185,7 @@ def main(args):
     model = model.cuda()
 
     save_dir = Path("checkpoints") / args.log_name
-    args.resume_checkpoint = os.path.join(save_dir, f'checkpoint-{args.epochs - 1}.pt')
+    args.resume_checkpoint = os.path.join(save_dir, f'checkpoint-latest.pt')
     print("Resume Path:%s" % args.resume_checkpoint)
     checkpoint = torch.load(args.resume_checkpoint)
 

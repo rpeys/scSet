@@ -150,7 +150,7 @@ def draw_attention_mnist(x, x_mask, alpha, back_color=(1, 1, 1), W=256, color_op
         p = p.cpu()
         for a_h in a.unbind(0):  # [M, I]
             fig = plt.figure(figsize=(figw, figh))
-            ax = fig.gca()
+            ax = fig.add_subplot(projection='3d')
             axis_set(ax, back_color)
 
             rgb = np.asarray([[palette[i, :]] for i in range(isize)])  # [I, 1, 3]
@@ -205,7 +205,7 @@ def draw_pointcloud(x, x_mask, back_color=(1, 1, 1), color=(0, 0, 0), W=256):
         p = p.cpu()
 
         fig = plt.figure(figsize=(figw, figh))
-        ax = fig.gca(projection='3d')
+        ax = fig.add_subplot(projection='3d')
         axis_set_3d(ax, back_color)
 
         ax.scatter(-p[:, 2], p[:, 0], p[:, 1], color=(color[0], color[1], color[2]), marker='o', s=100)
@@ -253,7 +253,7 @@ def draw_aggregated_attention_pointcloud(x, x_mask, alpha, back_color=(1, 1, 1),
         a = a.cpu()
         p = p.cpu()
         fig = plt.figure(figsize=(figw, figh))
-        ax = fig.gca(projection='3d')
+        ax = fig.add_subplot(projection='3d')
         axis_set_3d(ax, back_color)
 
         rgb = np.asarray([[palette[i, :]] for i in range(isize)])  # [I, 1, 3]
@@ -312,7 +312,7 @@ def draw_attention_pointcloud(x, x_mask, alpha, back_color=(1, 1, 1), W=256, col
         p = p.cpu()
         for a_h in a.unbind(0):  # [M, I]
             fig = plt.figure(figsize=(figw, figh))
-            ax = fig.gca(projection='3d')
+            ax = fig.add_subplot(projection='3d')
             axis_set_3d(ax, back_color)
 
             rgb = np.asarray([[palette[i, :]] for i in range(isize)])  # [I, 1, 3]
@@ -477,6 +477,10 @@ def draw(x, x_mask, back_color=(1, 1, 1), color=(0, 0, 0), W=256):
         return draw_mnist(x, x_mask, back_color, color, W)
     elif x.size(-1) == 3:
         return draw_open3d(x, x_mask, size=5)
+    elif x.size(-1) == 20: #as in the case for PCs, this shouldn't really be hardcoded to 20, since user can indicate other nPCs to use
+        print("WARNING: received input with 20 dimensions; only visualizing the first 3 [this is expected for RNA-seq data]")
+        x_trunc = x[:, :, :3]
+        return draw_pointcloud(x_trunc, x_mask)
     else:
         raise NotImplementedError
 

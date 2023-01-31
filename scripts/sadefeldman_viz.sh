@@ -1,5 +1,3 @@
-#! /bin/bash
-
 num_pcs=20
 max_outputs=700
 init_dim=32
@@ -20,8 +18,7 @@ dataset_type=rnaseq
 data_name=sadefeldman
 log_name=gen/sadefeldman/
 sadefeldman_data="/data/rna_rep_learning/sadefeldman/processed_adata_sparse.h5ad"
-
-deepspeed train.py \
+python sample_and_summarize.py \
   --kl_warmup_epochs ${kl_warmup_epochs} \
   --input_dim ${num_pcs} \
   --batch_size ${batch_size} \
@@ -34,7 +31,6 @@ deepspeed train.py \
   --num_heads ${num_heads} \
   --lr ${lr} \
   --beta ${beta} \
-  --epochs ${epochs} \
   --dataset_type ${dataset_type} \
   --log_name ${log_name} \
   --data_name ${data_name} \
