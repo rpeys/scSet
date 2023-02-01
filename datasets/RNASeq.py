@@ -41,6 +41,7 @@ class scData(torch.utils.data.Dataset):
         self.cache_dir = cache_dir
         if cache_dir is None:
             self.cache_dir = os.getcwd() #os.path.dirname(h5ad_loc)
+            print("setting cache_dir: " + self.cache_dir)
         self.datasets = self._process_cache()
 
     def _process_cache(self):
@@ -108,8 +109,8 @@ def build(args):
     num_pids = len(full_adata.obs[pid_col].unique())
     print("num_pids: " + str(num_pids))
     train_pids, val_pids = torch.utils.data.random_split(full_adata.obs[pid_col].unique(), [round(0.8*num_pids), round(0.2*num_pids)], generator=torch.Generator().manual_seed(0))
-    train_dataset = scData(adata=full_adata, name=args.data_name+"_train", pid_col=pid_col, pids=train_pids, num_components=args.num_pcs, distributed=args.distributed, local_rank=args.local_rank, cache_dir=os.path.dirname(args.h5ad_loc))
-    val_dataset = scData(adata=full_adata, name=args.data_name+"_val", pid_col=pid_col, pids=val_pids, num_components=args.num_pcs, distributed=args.distributed, local_rank=args.local_rank, cache_dir=os.path.dirname(args.h5ad_loc))
+    train_dataset = scData(adata=full_adata, name=args.data_name+"_train", pid_col=pid_col, pids=train_pids, num_components=args.num_pcs, distributed=args.distributed, local_rank=args.local_rank, cache_dir=os.path.dirname(args.cache_dir))
+    val_dataset = scData(adata=full_adata, name=args.data_name+"_val", pid_col=pid_col, pids=val_pids, num_components=args.num_pcs, distributed=args.distributed, local_rank=args.local_rank, cache_dir=os.path.dirname(args.cache_dir))
 
 
     train_loader = DataLoader(dataset=train_dataset, batch_size=args.batch_size, shuffle=True,

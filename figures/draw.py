@@ -477,7 +477,7 @@ def draw(x, x_mask, back_color=(1, 1, 1), color=(0, 0, 0), W=256):
         return draw_mnist(x, x_mask, back_color, color, W)
     elif x.size(-1) == 3:
         return draw_open3d(x, x_mask, size=5)
-    elif x.size(-1) == 20: #as in the case for PCs, this shouldn't really be hardcoded to 20, since user can indicate other nPCs to use
+    elif x.size(-1) == 20: #as in the case for RNAseq, this shouldn't really be hardcoded to 20, since user can indicate other nPCs to use
         print("WARNING: received input with 20 dimensions; only visualizing the first 3 [this is expected for RNA-seq data]")
         x_trunc = x[:, :, :3]
         return draw_pointcloud(x_trunc, x_mask)
