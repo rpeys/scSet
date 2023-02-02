@@ -1,7 +1,5 @@
-#! /bin/bash
-
 num_pcs=20
-max_outputs=1000
+#max_outputs=1000
 init_dim=32
 n_mixtures=4
 z_dim=16
@@ -13,7 +11,7 @@ pid_col="person"
 
 lr=1e-3
 beta=1e-2
-epochs=200
+epochs=2000
 kl_warmup_epochs=50
 scheduler="linear"
 dataset_type=rnaseq
@@ -21,8 +19,7 @@ data_name=cd138mm
 log_name=gen/cd138mm_zscales222/
 h5ad_loc=~/GitHub/mm_singlecell/outputs/script3.5/cd138_adata_postQC_groundtruthlabeled_leidenresults.h5ad
 cache_dir=/data/rna_rep_learning/scset/cd138mm/
-
-deepspeed train.py \
+python sample_and_summarize.py \
   --kl_warmup_epochs ${kl_warmup_epochs} \
   --input_dim ${num_pcs} \
   --batch_size ${batch_size} \
@@ -34,7 +31,6 @@ deepspeed train.py \
   --num_heads ${num_heads} \
   --lr ${lr} \
   --beta ${beta} \
-  --epochs ${epochs} \
   --dataset_type ${dataset_type} \
   --log_name ${log_name} \
   --data_name ${data_name} \
@@ -43,7 +39,7 @@ deepspeed train.py \
   --num_pcs ${num_pcs} \
   --pid_col ${pid_col} \
   --resume_optimizer \
-  --save_freq 10 \
+  --save_freq 100 \
   --viz_freq 10 \
   --log_freq 10 \
   --val_freq 10 \
@@ -53,9 +49,8 @@ deepspeed train.py \
   --seed 42 \
   --distributed \
   --deepspeed_config batch_size_8.json \
-  --val_recon_only \
-#z_scales 2 4 8 16 32 \
+  --val_recon_only
+#  --max_outputs ${max_outputs} \
+
 echo "Done"
 exit 0
-
-#--max_outputs ${max_outputs} \
