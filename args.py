@@ -6,7 +6,7 @@ def add_args(parser):
     # model architecture options
     parser.add_argument('--input_dim', type=int, default=3,
                         help='Number of input dimensions (3 for 3D point clouds)')
-    parser.add_argument('--max_outputs', type=int, default=None,#2500,
+    parser.add_argument('--max_outputs', type=int, default=2500,
                         help='Number of maximum output elements')
     parser.add_argument('--init_dim', type=int, default=64,
                         help='Number of dimensions for each initial set element')
@@ -16,8 +16,6 @@ def add_args(parser):
                         help='Whether to use fixed initialization (Fibonacci sphere-based) for initial set GMM parameters')
     parser.add_argument('--train_gmm', action='store_true',
                         help='Whether to train initial set GMM parameters via reparameterization')
-    parser.add_argument('--n_train_samples', type=int, default=None,
-                        help='Number of training samples to use, at maximum')
     parser.add_argument('--z_dim', type=int, default=16,
                         help='Number of dimensions for each latent set element')
     parser.add_argument('--z_scales', nargs='+', type=int, default=[2, 4, 8, 16],
