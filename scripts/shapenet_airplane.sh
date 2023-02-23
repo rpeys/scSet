@@ -16,6 +16,9 @@ dataset_type=shapenet15k
 log_name=gen/shapenet15k-airplane/camera-ready
 shapenet_data_dir="/data4/ShapeNet/ShapeNetCore.v2.PC15k"
 
+# To run on GPU x, add --include=localhost:x
+# To specify a port, add --master_port XXXX
+
 deepspeed train.py \
   --cates airplane \
   --input_dim ${input_dim} \

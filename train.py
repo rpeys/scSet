@@ -57,8 +57,7 @@ def main_worker(save_dir, args):
 
     # initialize datasets and loaders
     train_dataset, val_dataset, train_loader, val_loader = get_datasets(args)
-
-    model = SetVAE(args, train_dataset.maxcells)
+    model = SetVAE(args)
     parameters = model.parameters()
 
     n_parameters = sum(p.numel() for p in parameters if p.requires_grad)

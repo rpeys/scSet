@@ -42,7 +42,7 @@ def init_np_seed(worker_id):
 
 
 class Uniform15KPC(torch.utils.data.Dataset):
-    def __init__(self, root, subdirs, tr_sample_size=10000, te_sample_size=10000, split='train', scale=1.,
+    def __init__(self, root, subdirs, tr_sample_size=10000, te_sample_size=10000, split='train', n_samples=None, scale=1.,
                  standardize_per_shape=False,
                  normalize_per_shape=False, random_offset=False, random_subsample=False, normalize_std_per_axis=False,
                  all_points_mean=None, all_points_std=None, input_dim=3):
@@ -80,6 +80,8 @@ class Uniform15KPC(torch.utils.data.Dataset):
                 all_mids.append(os.path.join(self.split, x[:-len('.npy')]))
 
             # NOTE: [mid] contains the split: i.e. "train/<mid>" or "val/<mid>" or "test/<mid>"
+            if(n_samples is not None):
+                all_mids = all_mids[:n_samples]
             for mid in all_mids:
                 # obj_fname = os.path.join(sub_path, x)
                 obj_fname = os.path.join(root, subd, mid + ".npy")
@@ -207,7 +209,7 @@ class Uniform15KPC(torch.utils.data.Dataset):
 class ShapeNet15kPointClouds(Uniform15KPC):
     def __init__(self, root="/data/shapenet/ShapeNetCore.v2.PC15k",
                  categories=['airplane'], tr_sample_size=10000, te_sample_size=2048,
-                 split='train', scale=1., normalize_per_shape=False,
+                 split='train', n_samples=None, scale=1., normalize_per_shape=False,
                  standardize_per_shape=False,
                  normalize_std_per_axis=False,
                  random_offset=False,
@@ -234,6 +236,7 @@ class ShapeNet15kPointClouds(Uniform15KPC):
             te_sample_size=te_sample_size,
             split=split,
             scale=scale,
+            n_samples=n_samples,
             normalize_per_shape=normalize_per_shape,
             normalize_std_per_axis=normalize_std_per_axis,
             standardize_per_shape=standardize_per_shape,
@@ -270,6 +273,7 @@ def build(args):
         split='train',
         tr_sample_size=args.tr_max_sample_points,
         te_sample_size=args.te_max_sample_points,
+        n_samples = args.n_train_samples,
         scale=args.dataset_scale,
         root=args.shapenet_data_dir,
         standardize_per_shape=args.standardize_per_shape,

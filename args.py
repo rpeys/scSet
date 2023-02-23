@@ -16,6 +16,8 @@ def add_args(parser):
                         help='Whether to use fixed initialization (Fibonacci sphere-based) for initial set GMM parameters')
     parser.add_argument('--train_gmm', action='store_true',
                         help='Whether to train initial set GMM parameters via reparameterization')
+    parser.add_argument('--n_train_samples', type=int, default=None,
+                        help='Number of training samples to use, at maximum')
     parser.add_argument('--z_dim', type=int, default=16,
                         help='Number of dimensions for each latent set element')
     parser.add_argument('--z_scales', nargs='+', type=int, default=[2, 4, 8, 16],
