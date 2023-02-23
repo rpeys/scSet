@@ -273,10 +273,8 @@ class SetVAE(nn.Module):
             x = x.clone()
             x[..., -1] = (torch.tanh(x[..., -1]) + 1) / 2.
             return x, x_mask  # [B, N, Do]
-        elif x.shape[-1] == 20: #PCs for RNAseq data
+        else: #RNAseq data
             return x, x_mask
-        else:
-            print("error: hidden shape of x not recognized in postprocess")
 
     def make_optimizer(self, args):
         def _get_opt_(params):

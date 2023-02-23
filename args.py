@@ -133,11 +133,10 @@ def add_args(parser):
     parser.add_argument('--h5ad_loc', default=None, type=str,
                         help='Path to the h5ad file containing your anndata object')
     parser.add_argument('--cache_dir', default=None, type=str,
-                        help='Path where processed data will be cached for fast loading')
-    #not implemented, PCA hardcoded in RNAseq.py:
-    #parser.add_argument('--adata_layer', default='pca', type=str,
-    #                    help='Layer of the anndata object to use. Default pca.',
-    #                    choices=['pca', 'lognorm', 'raw'])
+                        help='Path where processed data will be cached for fast loading. Defaults to current working dir.')
+    parser.add_argument('--adata_layer', default='pca', type=str,
+                        help='Layer of the anndata object to use. Default pca.',
+                        choices=['pca', 'hvg_lognorm', 'hvg_raw'])
     parser.add_argument('--num_pcs', default=20, type=int,
                         help='Number of principal components to use. Default 20.')   
     parser.add_argument('--data_name', type=str,
