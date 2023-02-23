@@ -9,4 +9,5 @@ cache
 .ipynb_checkpoints
 figures/images
 figures/images*
+checkpoints
 .DS_Store

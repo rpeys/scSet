@@ -200,7 +200,7 @@ class Uniform15KPC(torch.utils.data.Dataset):
             'set': tr_out if self.split == 'train' else te_out,
             'offset': tr_ofs if self.split == 'train' else te_ofs,
             'mean': m, 'std': s, 'label': cate_idx,
-            'sid': sid, 'mid': mid
+            'sid': sid, 'mid': mid, 'pid': None
         }
 
 

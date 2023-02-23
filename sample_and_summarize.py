@@ -86,6 +86,7 @@ def recon(model, args, data):
         'posteriors': posteriors,
         'dec_att': dec_att,
         'enc_att': enc_att,
+        'enc_hiddens': [h.cpu() for h in output['hiddens']]
     }
     return result
 
@@ -119,6 +120,7 @@ def train_recon(model, args):
             'std': data['std'],
             'sid': data['sid'],
             'mid': data['mid'],
+            'pid': data['pid'],
             'cardinality': data['cardinality'],
         }
         result = dict()
@@ -156,6 +158,7 @@ def sample_and_recon(model, args):
             'std': data['std'],
             'sid': data['sid'],
             'mid': data['mid'],
+            'pid': data['pid'],
             'cardinality': data['cardinality'],
         }
         result = dict()

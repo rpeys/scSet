@@ -95,7 +95,7 @@ class SetMNIST(torch.utils.data.Dataset):
                 'idx': idx,
                 'set': s, 'mask': s_mask,
                 'mean': 0, 'std': 1, 'cate_idx': int(label),
-                'sid': None, 'mid': None
+                'sid': None, 'mid': None, 'pid': None
             })
         torch.save(data, cache_path)
         print("Done!")

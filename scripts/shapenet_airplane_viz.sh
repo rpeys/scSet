@@ -10,8 +10,8 @@ num_heads=4
 
 epochs=8000
 dataset_type=shapenet15k
-log_name=gen/shapenet15k-airplane/camera-ready
-shapenet_data_dir="/data4/ShapeNet/ShapeNetCore.v2.PC15k"
+log_name=/data/rna_rep_learning/nmsingh/scSet_ckpts/sample_complexity/shapenet15k-airplane/n_samples_100 #gen/shapenet15k-airplane/camera-ready
+shapenet_data_dir="/data/rna_rep_learning/ShapeNetCore.v2.PC15k"
 
 python sample_and_summarize.py \
   --cates airplane \

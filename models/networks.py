@@ -228,7 +228,7 @@ class SetVAE(nn.Module):
         o, o_mask = self.postprocess(tdn['set'], tdn['set_mask'])
         return {'set': o, 'set_mask': o_mask,
                 'posteriors': tdn['posteriors'], 'kls': tdn['kls'],
-                'alphas': (bup['alphas'], tdn['alphas'])}
+                'alphas': (bup['alphas'], tdn['alphas']), 'hiddens': bup['features']}
 
     def sample(self, output_sizes, hold_seed=None, hold_initial_set=False, given_latents=None):
         """ Top-down generation
