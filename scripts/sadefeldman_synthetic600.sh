@@ -8,7 +8,7 @@ z_dim=64 #PCA: 16
 hidden_dim=128 #PCA: 64
 num_heads=4
 adata_layer="hvg_lognorm"
-batch_size=8 #only have 2 GPUs, want total 32
+batch_size=16 
 pid_col="synthetic_pid"
 
 lr=1e-3
@@ -19,8 +19,8 @@ scheduler="linear"
 dataset_type=rnaseq
 data_name=syn_sadefeldman_geneinputs
 log_name=gen/syn_sadefeldman_beta1_geneinputs/
-sadefeldman_data="/data/rna_rep_learning/sadefeldman/synthetic_data/synthetic_adata.h5ad"
-cache_dir="/data/rna_rep_learning/sadefeldman/synthetic_data/"
+sadefeldman_data="/localdata/rna_rep_learning/sadefeldman/synthetic_data/synthetic_adata.h5ad"
+cache_dir="/localdata/rna_rep_learning/sadefeldman/synthetic_data/"
 
 deepspeed train.py \
   --kl_warmup_epochs ${kl_warmup_epochs} \
@@ -53,8 +53,7 @@ deepspeed train.py \
   --ln \
   --seed 42 \
   --distributed \
-  --deepspeed_config batch_size_8.json \
-  --val_recon_only
-
+  --val_recon_only \
+  --deepspeed_config batch_size.json
 echo "Done"
 exit 0
