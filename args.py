@@ -145,7 +145,7 @@ def add_args(parser):
                         help='Name of column that contains patient identifiers.')  
 
     # logger options
-    parser.add_argument('--log_name', default=None, type=str, help="Name for the log dir")
+    parser.add_argument('--log_name', default=None, type=str, help="Name for the log dir where checkpoints and summaries are saved")
     parser.add_argument('--log_freq', type=int, default=100)
     parser.add_argument('--viz_freq', type=int, default=10)
     parser.add_argument('--val_freq', type=int, default=10)

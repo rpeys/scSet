@@ -187,7 +187,7 @@ def main(args):
     model = SetVAE(args)
     model = model.cuda()
 
-    save_dir = Path("checkpoints") / args.log_name
+    save_dir = Path(args.log_name)
     args.resume_checkpoint = os.path.join(save_dir, f'checkpoint-latest.pt')
     print("Resume Path:%s" % args.resume_checkpoint)
     checkpoint = torch.load(args.resume_checkpoint)
