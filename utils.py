@@ -313,6 +313,7 @@ def validate_reconstruct_l2(epoch, val_loader, model, criterion, args, logger):
     criterion.train()
     l2_meter = AverageValueMeter()
     kl_meter = AverageValueMeter()
+    totalloss_meter = AverageValueMeter()
 
     for bidx, data in enumerate(val_loader):
         bsize = data['set_mask'].size(0)
@@ -346,6 +347,7 @@ def validate_reconstruct_l2(epoch, val_loader, model, criterion, args, logger):
 
         l2_meter.update(recon_loss.detach().item(), bsize)
         kl_meter.update(kl_loss.detach().item(), bsize)
+        totalloss_meter.update(loss.detach().item(), bsize)
 
         if bidx % args.log_freq == 0:
             duration = time.time() - start_time
@@ -357,6 +359,7 @@ def validate_reconstruct_l2(epoch, val_loader, model, criterion, args, logger):
     if logger is not None:
         logger.add_scalar('VAL kl loss (epoch)', kl_meter.avg, epoch)
         logger.add_scalar('VAL recon loss (epoch)', l2_meter.avg, epoch)
+        logger.add_scalar('VAL total loss (epoch)', totalloss_meter.avg, epoch)
         print('Log sent')
     return {'kl_avg': kl_meter.avg, 'l2_avg': l2_meter.avg}
 
