@@ -213,7 +213,7 @@ def main_worker(save_dir, args):
 
 def main():
     args = get_args()
-    save_dir = Path("checkpoints") / args.log_name
+    save_dir = Path(args.log_name)
     if not Path(save_dir).exists():
         Path(save_dir).mkdir(exist_ok=True, parents=True)
 
