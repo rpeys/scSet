@@ -44,10 +44,12 @@ def main_worker(save_dir, args):
 
     if args.model_name is not None:
         log_dir = Path(save_dir) / "runs/{}".format(args.model_name)
+        save_dir = Path(save_dir) / "checkpoints/{}".format(args.model_name)
     else:
         log_dir = Path(save_dir) / f"runs/{datetime.datetime.now().strftime('%m-%d-%H-%M-%S')}"
+        save_dir = Path(save_dir) / f"checkpoints/{datetime.datetime.now().strftime('%m-%d-%H-%M-%S')}"
 
-    save_dir = Path(save_dir) / "checkpoints/{}".format(args.model_name)
+    
 
     if args.local_rank == 0:
         logger = SummaryWriter(log_dir)
