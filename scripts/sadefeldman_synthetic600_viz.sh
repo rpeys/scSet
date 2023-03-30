@@ -1,6 +1,4 @@
-#! /bin/bash
-
-input_dim=20
+num_pcs=20
 max_outputs=700
 init_dim=32
 n_mixtures=4
@@ -22,9 +20,9 @@ log_name=/data/rna_rep_learning/scset/checkpoints/syn_sadefeldman_beta1_noised_s
 sadefeldman_data="/data/rna_rep_learning/sadefeldman/synthetic_data/syn_adata_noised_std_0.7261.h5ad"
 cache_dir="/data/rna_rep_learning/sadefeldman/synthetic_data_noised_std0.73/"
 
-deepspeed --include=localhost:0,1,2,3 --master_port 8081 train.py \
+python sample_and_summarize.py \
   --kl_warmup_epochs ${kl_warmup_epochs} \
-  --input_dim ${input_dim} \
+  --input_dim ${num_pcs} \
   --batch_size ${batch_size} \
   --max_outputs ${max_outputs} \
   --init_dim ${init_dim} \
@@ -35,13 +33,12 @@ deepspeed --include=localhost:0,1,2,3 --master_port 8081 train.py \
   --num_heads ${num_heads} \
   --lr ${lr} \
   --beta ${beta} \
-  --epochs ${epochs} \
   --dataset_type ${dataset_type} \
-  --adata_layer ${adata_layer} \
-  --cache_dir ${cache_dir} \
   --log_name ${log_name} \
   --data_name ${data_name} \
   --h5ad_loc ${sadefeldman_data} \
+  --cache_dir ${cache_dir} \
+  --num_pcs ${num_pcs} \
   --pid_col ${pid_col} \
   --resume_optimizer \
   --save_freq 100 \
@@ -53,7 +50,8 @@ deepspeed --include=localhost:0,1,2,3 --master_port 8081 train.py \
   --ln \
   --seed 42 \
   --distributed \
-  --val_recon_only \
-  --deepspeed_config batch_size.json
+  --deepspeed_config batch_size_8.json \
+  --val_recon_only
+
 echo "Done"
 exit 0

@@ -16,6 +16,8 @@ def add_args(parser):
                         help='Whether to use fixed initialization (Fibonacci sphere-based) for initial set GMM parameters')
     parser.add_argument('--train_gmm', action='store_true',
                         help='Whether to train initial set GMM parameters via reparameterization')
+    parser.add_argument('--n_train_samples', type=int, default=None,
+                        help='Number of training samples to use, at maximum')
     parser.add_argument('--z_dim', type=int, default=16,
                         help='Number of dimensions for each latent set element')
     parser.add_argument('--z_scales', nargs='+', type=int, default=[2, 4, 8, 16],
@@ -145,7 +147,8 @@ def add_args(parser):
                         help='Name of column that contains patient identifiers.')  
 
     # logger options
-    parser.add_argument('--log_name', default=None, type=str, help="Name for the log dir where checkpoints and summaries are saved")
+    parser.add_argument('--log_dir', default=None, type=str, help="Name for the log dir where checkpoints and summaries are saved")
+    parser.add_argument('--model_name', default=None, type=str, help="Name of the model when saving checkpoints, tensorboard, etc")
     parser.add_argument('--log_freq', type=int, default=100)
     parser.add_argument('--viz_freq', type=int, default=10)
     parser.add_argument('--val_freq', type=int, default=10)

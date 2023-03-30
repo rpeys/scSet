@@ -202,12 +202,15 @@ class SetVAE(nn.Module):
         :return:
         """
         o, o_mask = self.init_set(cardinality)
-        o = self.pre_decoder(o, o_mask)
-        alphas, posteriors, kls = [], [(o, None, None)], []
+        init_set = o.detach().clone()
+        o = self.pre_decoder(o, o_mask) #with default args (dec_in_layers=0), this is a no-op
+        alphas, posteriors, kls, hiddens, zs = [], [(o, None, None)], [], [], []
         for idx, layer in enumerate(get_module(self.gpu, self.decoder)):
             h, alpha1 = layer.project(o, o_mask)
+            hiddens.append(h)
             _, mu, logvar = layer.compute_prior(h)
             z, kl, mu2, logvar2 = layer.compute_posterior(mu, logvar, bottom_up_h[idx], None if idx == 0 else h)
+            zs.append(z)
             o, alpha2 = layer.broadcast_latent(z, h, o, o_mask)
             alphas.append((alpha1, alpha2))
             posteriors.append((z, mu2, logvar2))
@@ -215,7 +218,8 @@ class SetVAE(nn.Module):
         o = self.post_decoder(o, o_mask)
         o = self.output(o)  # [B, N, Do]
         return {'set': o, 'set_mask': o_mask,
-                'posteriors': posteriors, 'kls': kls, 'alphas': alphas}
+                'posteriors': posteriors, 'kls': kls, 'alphas': alphas, 
+                'init_set': init_set, 'hiddens': hiddens, 'zs': zs}
 
     def forward(self, x, x_mask):
         """ Bidirectional inference
@@ -228,7 +232,7 @@ class SetVAE(nn.Module):
         o, o_mask = self.postprocess(tdn['set'], tdn['set_mask'])
         return {'set': o, 'set_mask': o_mask,
                 'posteriors': tdn['posteriors'], 'kls': tdn['kls'],
-                'alphas': (bup['alphas'], tdn['alphas']), 'hiddens': bup['features']}
+                'alphas': (bup['alphas'], tdn['alphas']), 'enc_hiddens': bup['features'], 'init_set':tdn['init_set'], 'dec_hiddens': tdn['hiddens'], 'dec_latents': tdn['zs']}
 
     def sample(self, output_sizes, hold_seed=None, hold_initial_set=False, given_latents=None):
         """ Top-down generation
@@ -259,7 +263,7 @@ class SetVAE(nn.Module):
             alphas.append((alpha1, alpha2))
         o = self.post_decoder(o, o_mask)
         o = self.output(o)  # [B, N, Do]
-        o, o_mask = self.postprocess(o, o_mask)
+        o, o_mask = self.postprocess(o, o_mask) #no-op for RNAseq data
         return {'set': o, 'set_mask': o_mask,
                 'priors': priors, 'alphas': alphas}
 

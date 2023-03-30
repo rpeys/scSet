@@ -86,7 +86,10 @@ def recon(model, args, data):
         'posteriors': posteriors,
         'dec_att': dec_att,
         'enc_att': enc_att,
-        'enc_hiddens': [h.cpu() for h in output['hiddens']]
+        'enc_hiddens': [h.cpu() for h in output['enc_hiddens']],
+        'init_set': output['init_set'].cpu(),
+        'dec_hiddens': [h.cpu() for h in output['dec_hiddens']],
+        'dec_latents': [z.cpu() for z in output['dec_latents']],
     }
     return result
 
@@ -187,7 +190,8 @@ def main(args):
     model = SetVAE(args)
     model = model.cuda()
 
-    save_dir = Path(args.log_name)
+    save_dir = Path(args.log_dir) / "checkpoints" / args.model_name
+    assert (args.resume_checkpoint is None), "argument resume_checkpoint not currently used, update code"
     args.resume_checkpoint = os.path.join(save_dir, f'checkpoint-latest.pt')
     print("Resume Path:%s" % args.resume_checkpoint)
     checkpoint = torch.load(args.resume_checkpoint)

@@ -42,10 +42,12 @@ def main_worker(save_dir, args):
     # basic setup
     cudnn.benchmark = True
 
-    if args.log_name is not None:
-        log_dir = "runs/%s" % args.log_name
+    if args.model_name is not None:
+        log_dir = Path(save_dir) / "runs/{}".format(args.model_name)
     else:
-        log_dir = f"runs/{datetime.datetime.now().strftime('%m-%d-%H-%M-%S')}"
+        log_dir = Path(save_dir) / f"runs/{datetime.datetime.now().strftime('%m-%d-%H-%M-%S')}"
+
+    save_dir = Path(save_dir) / "checkpoints/{}".format(args.model_name)
 
     if args.local_rank == 0:
         logger = SummaryWriter(log_dir)
@@ -213,16 +215,18 @@ def main_worker(save_dir, args):
 
 def main():
     args = get_args()
-    save_dir = Path(args.log_name)
-    if not Path(save_dir).exists():
-        Path(save_dir).mkdir(exist_ok=True, parents=True)
+    save_dir = Path(args.log_dir)
+    if not (Path(save_dir)/"checkpoints").exists():
+        (Path(save_dir)/"checkpoints").mkdir(exist_ok=True, parents=True)
+    if not (Path(save_dir)/"runs").exists():
+        (Path(save_dir)/"runs").mkdir(exist_ok=True, parents=True)
 
     if args.seed is None:
         args.seed = random.randint(0, 1000000)
     set_random_seed(args.seed)
 
     if args.local_rank == 0:
-        send_slack(f'{args.log_name} started')
+        send_slack(f'{args.log_dir} started')
         print("Arguments:")
         print(args)
 

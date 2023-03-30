@@ -50,7 +50,7 @@ python sample_and_summarize.py \
   --ln \
   --seed 42 \
   --distributed \
-  --deepspeed_config batch_size_8.json \
+  --deepspeed_config batch_size.json \
   --val_recon_only
 
 echo "Done"
