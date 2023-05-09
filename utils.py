@@ -361,7 +361,7 @@ def validate_reconstruct_l2(epoch, val_loader, model, criterion, args, logger):
         logger.add_scalar('VAL recon loss (epoch)', l2_meter.avg, epoch)
         logger.add_scalar('VAL total loss (epoch)', totalloss_meter.avg, epoch)
         print('Log sent')
-    return {'kl_avg': kl_meter.avg, 'l2_avg': l2_meter.avg}
+    return {'kl_avg': kl_meter.avg, 'l2_avg': l2_meter.avg, 'totalloss_avg': totalloss_meter.avg}
 
 
 @torch.no_grad()
@@ -493,7 +493,7 @@ def validate_sample(loader, model, args, max_samples, save_dir):
         jsd = JSD(sample_pcs, ref_pcs)
         jsd = torch.tensor(jsd).cuda() if args.gpu is None else torch.tensor(jsd).cuda(args.gpu)
         res.update({"JSD": jsd})
-    pprint(res)
+    print(res)
     return res
 
 

@@ -43,14 +43,16 @@ def main_worker(save_dir, args):
     cudnn.benchmark = True
 
     if args.model_name is not None:
-        log_dir = Path(save_dir) / "runs/{}".format(args.model_name)
+        log_dir = Path(save_dir) / "tensorboard_logs/{}".format(args.model_name)
         save_dir = Path(save_dir) / "checkpoints/{}".format(args.model_name)
+        if not Path(save_dir).exists():
+            Path(save_dir).mkdir(exist_ok=True, parents=True)
     else:
-        log_dir = Path(save_dir) / f"runs/{datetime.datetime.now().strftime('%m-%d-%H-%M-%S')}"
+        log_dir = Path(save_dir) / f"tensorboard_logs/{datetime.datetime.now().strftime('%m-%d-%H-%M-%S')}"
         save_dir = Path(save_dir) / f"checkpoints/{datetime.datetime.now().strftime('%m-%d-%H-%M-%S')}"
-
+        if not Path(save_dir).exists():
+            Path(save_dir).mkdir(exist_ok=True, parents=True)
     
-
     if args.local_rank == 0:
         logger = SummaryWriter(log_dir)
     else:
@@ -154,6 +156,7 @@ def main_worker(save_dir, args):
     assert args.distributed
 
     epoch = start_epoch
+    best_val_totalloss = 1e30
     print("Start epoch: %d End epoch: %d" % (start_epoch, args.epochs))
     for epoch in range(start_epoch, args.epochs):
         if args.local_rank == 0:
@@ -177,10 +180,14 @@ def main_worker(save_dir, args):
             # save checkpoints
             if (epoch + 1) % args.save_freq == 0:
                 print("saving checkpoint...")
-                if args.eval:
-                    validate_reconstruct_l2(epoch, val_loader, model, criterion, args, logger)
-                save(model.module, model.optimizer, model.lr_scheduler, epoch + 1,
-                     Path(save_dir) / f'checkpoint-{epoch}.pt')
+                if True: #always want to eval so can save best model. previously: if args.eval:
+                    val_losses = validate_reconstruct_l2(epoch, val_loader, model, criterion, args, logger)
+                    if val_losses['totalloss_avg'] < best_val_totalloss:
+                        best_val_totalloss = val_losses['totalloss_avg']
+                        save(model.module, model.optimizer, model.lr_scheduler, epoch + 1,
+                            Path(save_dir) / 'checkpoint-best.pt')
+                #save(model.module, model.optimizer, model.lr_scheduler, epoch + 1,
+                #     Path(save_dir) / f'checkpoint-{epoch}.pt')
                 save(model.module, model.optimizer, model.lr_scheduler, epoch + 1,
                      Path(save_dir) / 'checkpoint-latest.pt')
 
@@ -217,11 +224,11 @@ def main_worker(save_dir, args):
 
 def main():
     args = get_args()
-    save_dir = Path(args.log_dir)
-    if not (Path(save_dir)/"checkpoints").exists():
-        (Path(save_dir)/"checkpoints").mkdir(exist_ok=True, parents=True)
-    if not (Path(save_dir)/"runs").exists():
-        (Path(save_dir)/"runs").mkdir(exist_ok=True, parents=True)
+    #save_dir = Path(args.log_dir)
+    #if not (Path(save_dir)/"checkpoints").exists():
+    #    (Path(save_dir)/"checkpoints").mkdir(exist_ok=True, parents=True)
+    #if not (Path(save_dir)/"runs").exists():
+    #    (Path(save_dir)/"runs").mkdir(exist_ok=True, parents=True)
 
     if args.seed is None:
         args.seed = random.randint(0, 1000000)

@@ -191,8 +191,12 @@ def main(args):
     model = model.cuda()
 
     save_dir = Path(args.log_dir) / "checkpoints" / args.model_name
-    assert (args.resume_checkpoint is None), "argument resume_checkpoint not currently used, update code"
-    args.resume_checkpoint = os.path.join(save_dir, f'checkpoint-latest.pt')
+    # default to checkpoint-best
+    if args.resume_checkpoint is None and Path(Path(save_dir) / 'checkpoint-best.pt').exists():
+        args.resume_checkpoint = os.path.join(save_dir, f'checkpoint-best.pt')
+    # else default to checkpoint-latest to be backwards compatible to before we saved the best checkpoint
+    elif args.resume_checkpoint is None and Path(Path(save_dir) / 'checkpoint-latest.pt').exists():
+        args.resume_checkpoint = os.path.join(save_dir, f'checkpoint-latest.pt')
     print("Resume Path:%s" % args.resume_checkpoint)
     checkpoint = torch.load(args.resume_checkpoint)
 

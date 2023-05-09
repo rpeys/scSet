@@ -12,3 +12,4 @@ figures/images*
 checkpoints
 .DS_Store
 batch_size.json
+tensorboard_logs/
