@@ -5,10 +5,15 @@ from collections import OrderedDict
 import torch
 import numpy as np
 from tqdm import tqdm
+import itertools
 
 from args import get_args
 from datasets import get_datasets
 from models.networks import SetVAE
+
+from sklearn.metrics import silhouette_score
+from sklearn.cluster import KMeans
+from sklearn.metrics import adjusted_rand_score
 
 
 def get_train_loader(args):
@@ -181,10 +186,26 @@ def sample_and_recon(model, args):
 
     summary = collate(summary)
 
+    eval_latents(summary)
+
     summary_name = Path(save_dir) / f"summary.pth"
     torch.save(summary, summary_name)
     print(summary_name)
 
+def eval_latents(summary, nclusts=2):
+    patient_cats = list(itertools.chain.from_iterable(summary['mid']))
+    if patient_cats[0] is not None: #if no patient groups are defined, can't eval latents
+        for layer in np.arange(len(summary['enc_hiddens'][0])):
+            print("layer {}".format(layer))
+            val_hiddens = torch.concat([batch[layer] for batch in summary['enc_hiddens']]) #final hidden rep in encoder for each patient in the val set
+            val_hiddens = val_hiddens.reshape(val_hiddens.shape[0], -1)
+            sil = silhouette_score(val_hiddens, patient_cats)
+            print("sillhouette score: {}".format(round(sil,2)))
+            
+            clusters = KMeans(n_clusters=nclusts).fit_predict(val_hiddens)
+            ari = adjusted_rand_score(patient_cats, clusters)
+            print("ARI: {}".format(round(ari,2)))
+            print("\n")
 
 def main(args):
     model = SetVAE(args)

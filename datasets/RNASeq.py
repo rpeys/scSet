@@ -18,7 +18,7 @@ def init_np_seed(worker_id):
 
 
 class scData(torch.utils.data.Dataset):
-    def __init__(self, adata=None, name="unnamed_rnaseqdata", pid_col="pid", pids = None, num_components = None, celltypes=None, cache_dir=None, adata_layer=None):
+    def __init__(self, adata=None, name="unnamed_rnaseqdata", pid_col="pid", cat_col=None, pids=None, num_components=None, celltypes=None, cache_dir=None, adata_layer=None):
         """
         :param name: name of the dataset
         :param pids: subset of patient ids to use (used for creating train/val sets)
@@ -30,6 +30,7 @@ class scData(torch.utils.data.Dataset):
         self.pid_col=pid_col
         if self.pids is None:
            self.pids = adata.obs[pid_col].unique() #use all PIDs if none are specified
+        self.cat_col=cat_col
         self.adata_layer = adata_layer
         self.celltypes = celltypes
         self.in_tr_sample_size = None
@@ -68,12 +69,17 @@ class scData(torch.utils.data.Dataset):
             # s_mask:[N, Di] True where there is no cell, False where there is a cell
             s_mask = torch.ones(self.maxcells, dtype=torch.bool)
             s_mask[:len(pid_adata)] = False
+            #going to use mid to keep track of patient category. not sure what it was originally intended for...
+            if self.cat_col is not None:
+                mid = pid_adata.obs[self.cat_col][0]
+            else:
+                mid = None
             data.append({
                 'idx': idx,
                 'pid': pid,
                 'set': s, 'mask': s_mask,
                 'mean': 0, 'std': 1,      #'response': pid_adata.obs.response[0], 'therapy': pid_adata.obs.therapy[0]      
-                'sid':None, 'mid':None
+                'sid':None, 'mid':mid
                 }) 
         torch.save(data, cache_path)
         print("Done! Saved data to %s" % cache_path)
@@ -117,8 +123,8 @@ def build(args):
     num_pids = len(full_adata.obs[pid_col].unique())
     print("num_pids: " + str(num_pids))
     train_pids, val_pids = torch.utils.data.random_split(full_adata.obs[pid_col].unique(), [round(0.8*num_pids), round(0.2*num_pids)], generator=torch.Generator().manual_seed(0))
-    train_dataset = scData(adata=full_adata, name=args.data_name+"_train", pid_col=pid_col, pids=train_pids, num_components=args.input_dim, cache_dir=os.path.dirname(args.cache_dir), adata_layer=args.adata_layer)
-    val_dataset = scData(adata=full_adata, name=args.data_name+"_val", pid_col=pid_col, pids=val_pids, num_components=args.input_dim, cache_dir=os.path.dirname(args.cache_dir), adata_layer=args.adata_layer)
+    train_dataset = scData(adata=full_adata, name=args.data_name+"_train", pid_col=pid_col, pids=train_pids, cat_col=args.cat_col, num_components=args.input_dim, cache_dir=os.path.dirname(args.cache_dir), adata_layer=args.adata_layer)
+    val_dataset = scData(adata=full_adata, name=args.data_name+"_val", pid_col=pid_col, pids=val_pids, cat_col=args.cat_col, num_components=args.input_dim, cache_dir=os.path.dirname(args.cache_dir), adata_layer=args.adata_layer)
 
 
     train_loader = DataLoader(dataset=train_dataset, batch_size=args.batch_size, shuffle=True,

@@ -145,6 +145,8 @@ def add_args(parser):
                         help='Name of RNAseq dataset.')   
     parser.add_argument('--pid_col', type=str, default="pid",
                         help='Name of column that contains patient identifiers.')  
+    parser.add_argument('--cat_col', type=str, default=None,
+                        help='Name of column that contains patient group ID (optional).')  
 
     # logger options
     parser.add_argument('--log_dir', default="./", type=str, help="Name for the log dir where checkpoints and summaries are saved")
