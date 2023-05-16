@@ -224,7 +224,7 @@ def main_worker(save_dir, args):
 
 def main():
     args = get_args()
-    #save_dir = Path(args.log_dir)
+    save_dir = Path(args.log_dir)
     #if not (Path(save_dir)/"checkpoints").exists():
     #    (Path(save_dir)/"checkpoints").mkdir(exist_ok=True, parents=True)
     #if not (Path(save_dir)/"runs").exists():
