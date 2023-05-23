@@ -6,7 +6,7 @@ z_dim=16
 hidden_dim=64
 num_heads=4
 adata_layer="hvg_lognorm"
-batch_size=8 
+batch_size=10
 pid_col="syn_pid"
 
 lr=1e-3

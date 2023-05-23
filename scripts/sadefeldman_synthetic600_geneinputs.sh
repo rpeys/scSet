@@ -8,7 +8,7 @@ z_dim=16
 hidden_dim=64
 num_heads=4
 adata_layer="hvg_lognorm"
-batch_size=8 
+batch_size=10 
 pid_col="syn_pid"
 
 lr=1e-3
@@ -23,7 +23,7 @@ model_name=syn_sadefeldman_beta1_noised_std0.73_geneinputs
 sadefeldman_data="/data/rna_rep_learning/sadefeldman/synthetic_data/syn_adata_noised_std_0.7261.h5ad"
 cache_dir="/data/rna_rep_learning/sadefeldman/synthetic_data_noised_std0.73_geneinputs/"
 
-deepspeed  --include=localhost:2,3 --master_port 8083 train.py \
+deepspeed  --include=localhost:1,2,3 --master_port 8083 train.py \
   --kl_warmup_epochs ${kl_warmup_epochs} \
   --input_dim ${input_dim} \
   --batch_size ${batch_size} \
