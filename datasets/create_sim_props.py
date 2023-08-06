@@ -9,12 +9,18 @@ import scipy
 import seaborn as sns
 from datetime import datetime
 import torch
-from utils import sample_pt_cells_scvi
+from utils import sample_pt_cells_scvi, viz_props
 print("cuda available: " + str(torch.cuda.is_available()))
 
 #eventual args
 image_dir = "/home/rpeyser/GitHub/scSet/datasets/figures/simulated_props/"
-data_name = "props_exp_scvi_tsubtypes_0.05vs0.15_dirstr100"
+data_name = "props_exp_scvi_tsubtypes_0.25vs0.1c_dirstr100"
+
+image_dir = image_dir + data_name + "/"
+if not os.path.exists(image_dir)
+   # Create a new directory because it does not exist
+   os.makedirs(image_dir)
+
 sc.settings.figdir = image_dir
 
 cd45_adata = sc.read_h5ad("/localdata/rna_rep_learning/zavidij_etal/cd45_adata.h5ad")
@@ -32,8 +38,8 @@ with open("/localdata/rna_rep_learning/scset/scvi_data/cd45model.pkl", "rb") as 
 #generate synthetic data
 cell_types = ["CD4 Cytotoxic", "CD8 Cytotoxic", "Helper 1", "Memory Cytotoxic", "B-cells", "CD14+ Monocytes"]
 dir_strength = 100
-cell_type_dirichlet_concentrations_1={"CD4 Cytotoxic":0.05*dir_strength, "CD8 Cytotoxic":0.15*dir_strength, "Helper 1":0.2*dir_strength, "Memory Cytotoxic":0.2*dir_strength, "B-cells":0.2*dir_strength, "CD14+ Monocytes":0.2*dir_strength}
-cell_type_dirichlet_concentrations_2={"CD4 Cytotoxic":0.15*dir_strength, "CD8 Cytotoxic":0.05*dir_strength, "Helper 1":0.2*dir_strength, "Memory Cytotoxic":0.2*dir_strength, "B-cells":0.2*dir_strength, "CD14+ Monocytes":0.2*dir_strength}
+cell_type_dirichlet_concentrations_1={"CD4 Cytotoxic":0.1*dir_strength, "CD8 Cytotoxic":0.25*dir_strength, "Helper 1":0.1625*dir_strength, "Memory Cytotoxic":0.1625*dir_strength, "B-cells":0.1625*dir_strength, "CD14+ Monocytes":0.1625*dir_strength}
+cell_type_dirichlet_concentrations_2={"CD4 Cytotoxic":0.25*dir_strength, "CD8 Cytotoxic":0.1*dir_strength, "Helper 1":0.1625*dir_strength, "Memory Cytotoxic":0.1625*dir_strength, "B-cells":0.1625*dir_strength, "CD14+ Monocytes":0.1625*dir_strength}
 npatients = 500
 mean_ncells = 445
 total_cells_pp = scipy.stats.poisson.rvs(mean_ncells, size=npatients)
@@ -61,8 +67,11 @@ print("creating clustermaps of data...")
 # clustering patients based on cell type counts
 celltype_counts = sim_metadata[['celltype','group','patient']].groupby(["group","patient","celltype"]).size().unstack()
 sns.clustermap(celltype_counts.reset_index().drop("group", axis=1).set_index("patient").fillna(0), row_colors=celltype_counts.reset_index().set_index("patient").group.map({"group1":"purple", "group2":"yellow"}), yticklabels=False, figsize=(7,7))
-plt.savefig(image_dir + "clustermap_celltypecounts_" + data_name + ".png")        
+plt.savefig(image_dir + "clustermap_celltypecounts.png")      
 
+print("creating stacked barplots of cell type proportions...")
+viz_props(sim_metadata)
+plt.savefig(image_dir + "stackedbar_celltypefrac.png")      
 
 # pseudobulk of these sample
 pseudobulk_counts = pd.DataFrame(sim_counts, index=sim_metadata.patient, columns=cd45_adata.var.index).reset_index().groupby("patient").sum()
@@ -73,7 +82,7 @@ gene_stds = pseudobulk_lognorm.std(axis=1)
 topvargenes = gene_stds.sort_values()[-100:].index
 
 sns.clustermap(pseudobulk_lognorm.loc[topvargenes,:], figsize=(7,7), col_colors=sim_metadata[['patient','group']].drop_duplicates().set_index('patient').group.map({'group1':'purple', 'group2':'yellow'}))
-plt.savefig(image_dir + "clustermap_pseudobulk_" + data_name + ".png")        
+plt.savefig(image_dir + "clustermap_pseudobulk.png")        
 
 print("creating anndata object...")
 # make anndata object for model to use

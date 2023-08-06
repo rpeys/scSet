@@ -1,21 +1,20 @@
 ###############################################################################
 # Uncomment for debugging
-#DEBUG := 1
+DEBUG := 1
 # Pretty build
 #Q ?= @
 
 CXX := g++
 PYTHON := python
-NVCC := /usr/local/cuda-11.4/bin/nvcc
+NVCC := /usr/local/cuda-12/bin/nvcc #on zeus: cuda-11; on hera: cuda-11.4
 
 # PYTHON Header path
 PYTHON_HEADER_DIR := $(shell $(PYTHON) -c 'from distutils.sysconfig import get_python_inc; print(get_python_inc())')
 PYTORCH_INCLUDES := $(shell $(PYTHON) -c 'from torch.utils.cpp_extension import include_paths; [print(p) for p in include_paths()]')
 PYTORCH_LIBRARIES := $(shell $(PYTHON) -c 'from torch.utils.cpp_extension import library_paths; [print(p) for p in library_paths()]')
-
 # CUDA ROOT DIR that contains bin/ lib64/ and include/
-# CUDA_DIR := /usr/local/cuda
-CUDA_DIR := $(shell $(PYTHON) -c 'from torch.utils.cpp_extension import _find_cuda_home; print(_find_cuda_home())')
+CUDA_DIR := /usr/local/cuda-12
+# CUDA_DIR := $(shell $(PYTHON) -c 'from torch.utils.cpp_extension import _find_cuda_home; print(_find_cuda_home())')
 
 INCLUDE_DIRS := ./ $(CUDA_DIR)/include
 

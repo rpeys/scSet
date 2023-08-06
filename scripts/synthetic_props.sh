@@ -19,13 +19,13 @@ epochs=600
 kl_warmup_epochs=50
 scheduler="linear"
 dataset_type=rnaseq
-data_name=syn_props_tsubtypes_0.05vs0.15_dirstr100
-model_name=syn_props_hdim32_scvi_tsubtypes_0.05vs0.15_dirstr100
-h5ad_loc="/localdata/rna_rep_learning/scset/props_exp_scvi_tsubtypes_0.05vs0.15_dirstr100.h5ad"
+data_name=syn_props_tsubtypes_0.25vs0.1_dirstr100
+model_name=syn_props_hdim32_scvi_tsubtypes_0.25vs0.1_dirstr100
+h5ad_loc="/localdata/rna_rep_learning/scset/props_exp_scvi_tsubtypes_0.25vs0.1_dirstr100.h5ad"
 cache_dir="/localdata/rna_rep_learning/scset/synthetic_props_scvi/"
-num_workers=2 #run out of CPU memory with 4
+num_workers=4
 
-deepspeed --include=localhost:1,2 --master_port 8081 train.py \
+deepspeed --include=localhost:1,2,3 --master_port 8081 train.py \
   --kl_warmup_epochs ${kl_warmup_epochs} \
   --input_dim ${input_dim} \
   --batch_size ${batch_size} \

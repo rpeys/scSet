@@ -1,6 +1,7 @@
 import scipy
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 def sample_pt_cells_scvi(adata, scvi_model, cell_types, cell_type_dirichlet_conc, total_cells, ptname, groupname):
     
@@ -96,3 +97,20 @@ def simulate_patient_counts(cell_types, cell_type_concs, total_cells, gene_param
     full_sample_matrix = np.multiply(full_sample_matrix.T, libsizes).T
     full_sample_counts = scipy.stats.poisson.rvs(full_sample_matrix)
     return full_sample_counts, metadata
+
+def viz_props(obs_df):
+    #visualize proportions in this dataset
+    obs_df.celltype.cat.remove_unused_categories(inplace=True)
+    celltypecounts = obs_df.groupby(["patient", "celltype"]).count().reset_index().iloc[:,:3]
+    celltypecounts = celltypecounts.rename(columns = {celltypecounts.columns[2]:"ncells"})
+    #celltypecounts['pt_totalcells'] = 
+    pt_totalcells = celltypecounts.groupby("patient").sum().iloc[:,[0]].reset_index().rename(columns={'ncells':'pt_totalcells'})
+    celltypecounts = celltypecounts.merge(pt_totalcells, on="patient")
+    celltypecounts['fraction'] = celltypecounts.ncells / celltypecounts.pt_totalcells
+    celltypecounts
+    
+    fig, ax = plt.subplots(1,1, figsize=[5,3])
+
+    toplot = celltypecounts[["patient","celltype","fraction"]].pivot(index="patient", columns="celltype", values="fraction").fillna(0).reset_index()
+    toplot.plot(kind="bar", stacked="true", x="patient", ax=ax, xticks=[])
+    plt.legend(loc="upper right", bbox_to_anchor=[1.5,1]);

@@ -497,7 +497,7 @@ def draw_attention(x, x_mask, alpha, back_color=(1, 1, 1), W=256, color_opt='gis
     elif x.size(-1) == 20: #as in the case for RNAseq, this shouldn't really be hardcoded to 20, since user can indicate other nPCs to use
         print("WARNING: received input with 20 dimensions; only visualizing the first 3 [this is expected for RNA-seq data]")
         x_trunc = x[:, :, :3]
-        return draw_attention_open3d(x_trunc, x_mask, alpha, color_opt='gist_rainbow', size=10, palette_permutation=palette_permutation)
-        #return draw_attention_pointcloud(x_trunc, x_mask, alpha=torch.ones(4, x.shape[0], x.shape[1], 16)) #:param alpha: Tensor([n_heads, B, N, I])
+        #return draw_attention_open3d(x_trunc, x_mask, alpha, color_opt='gist_rainbow', size=10, palette_permutation=palette_permutation)
+        return draw_attention_pointcloud(x_trunc, x_mask, alpha)#=torch.ones(4, x.shape[0], x.shape[1], 32)) #:param alpha: Tensor([n_heads, B, N, I])
     else:
         raise NotImplementedError
