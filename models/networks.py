@@ -134,6 +134,7 @@ class SetVAE(nn.Module):
             self.max_outputs = max_outputs_empirical
         else:
             self.max_outputs = 2500
+        self.no_zigzag = args.no_zigzag
         self.fixed_gmm = args.fixed_gmm
         self.train_gmm = args.train_gmm
         self.init_dim = args.init_dim
@@ -181,7 +182,7 @@ class SetVAE(nn.Module):
 
     def bottom_up(self, x, x_mask):
         """ Deterministic bottom-up encoding
-        :param x: Tensor([B, N, Di])
+        :param x: Tensor([B, N, Di]) #batch, n cells, input dim
         :param x_mask: BoolTensor([B, N])
         :return: List([Tensor([B, M, D])]), List([Tensor([H, B, N, M]), Tensor([H, B, N, M])])
         """
@@ -189,6 +190,18 @@ class SetVAE(nn.Module):
         x = self.pre_encoder(x, x_mask)
         features = list()
         alphas = list()
+        if self.no_zigzag:
+            l=0
+            for layer in get_module(self.gpu, self.encoder):
+                if l==0: #need to pass x_mask for first layer only
+                    _, x, alpha1, _ = layer(x, x_mask)  # [B, N, D], [B, M, D], [H, B, N, M], [H, B, N, M]
+                else:
+                    _, x, alpha1, _ = layer(x)
+                features.append(x)
+                alphas.append((alpha1))
+                l+=1
+            return {'features': features, 'alphas': alphas}
+
         for layer in get_module(self.gpu, self.encoder):
             x, h, alpha1, alpha2 = layer(x, x_mask)  # [B, N, D], [B, M, D], [H, B, N, M], [H, B, N, M]
             features.append(h)
@@ -223,7 +236,7 @@ class SetVAE(nn.Module):
 
     def forward(self, x, x_mask):
         """ Bidirectional inference
-        :param x: Tensor([B, N, Di])
+        :param x: Tensor([B, N, Di]) #batch, n cells, input dim
         :param x_mask: BoolTensor([B, N])
         :return: Tensor([B, N, Do]), Tensor([B, N]), List([Tensor([H, B, N, M]), Tensor([H, B, N, M])]) * 2
         """
@@ -307,3 +320,108 @@ class SetVAE(nn.Module):
         self.init_set = f(self.init_set)
         self.decoder = f(self.decoder)
         self.output = f(self.output)
+
+class SetPredictor(nn.Module):
+    def __init__(self, args, max_outputs_empirical=None):
+        super().__init__()
+        self.gpu = args.gpu
+        self.input_dim = args.input_dim
+        if args.max_outputs is not None:
+            self.max_outputs = args.max_outputs  
+        elif max_outputs_empirical is not None:
+            self.max_outputs = max_outputs_empirical
+        else:
+            self.max_outputs = 2500
+        self.num_targets = args.num_targets
+        self.no_zigzag = args.no_zigzag
+        self.fixed_gmm = args.fixed_gmm
+        self.train_gmm = args.train_gmm
+        self.init_dim = args.init_dim
+        self.n_mixtures = args.n_mixtures
+        self.n_layers = len(args.z_scales)
+        self.z_dim = args.z_dim
+        self.z_scales = args.z_scales
+        self.hidden_dim = args.hidden_dim
+        self.num_heads = args.num_heads
+        self.slot_att = args.slot_att
+        self.i_net = args.i_net
+        self.i_net_layers = args.i_net_layers
+        self.d_net = args.d_net
+        self.enc_in_layers = args.enc_in_layers
+        self.isab_inds = args.isab_inds
+        self.ln = args.ln
+        self.dropout_p = args.dropout_p
+        self.activation = args.activation
+        self.use_bn = args.use_bn
+        self.residual = args.residual
+        self.enc_inds = list(reversed(self.z_scales))  # bottom-up
+        self.input = nn.Linear(self.input_dim, self.hidden_dim)
+        self.init_set = InitialSet(args, self.init_dim, self.n_mixtures, self.fixed_gmm, self.train_gmm, self.hidden_dim, self.max_outputs)
+        self.pre_encoder = DeterministicNetwork(self.d_net, self.isab_inds, self.hidden_dim, self.hidden_dim,
+                                                self.enc_in_layers, self.num_heads, self.ln, self.dropout_p,
+                                                self.activation, self.use_bn, self.residual)
+        self.encoder = nn.ModuleList()
+        for i in range(self.n_layers):
+            self.encoder.append(EncoderBlock(self.hidden_dim, self.hidden_dim, self.num_heads,
+                                             self.enc_inds[i], self.ln, self.dropout_p, self.slot_att))
+        # summarize each hidden rep by going from hidden_dim -> smaller dim (hardcoded to scalar for now)
+        # TO DO: n_hidden should be passed in as an argument
+        self.i_conv = ElementwiseMLP(dim_in=self.hidden_dim, dim_hidden=None, dim_out=1, n_hidden=0)
+        self.output = nn.Linear(self.z_scales[0], self.num_targets) #prediction head, from final bottleneck hidden rep of set (already reduced from hidden dim to scalars) to targets
+
+    def bottom_up(self, x, x_mask):
+        """ Deterministic bottom-up encoding
+        :param x: Tensor([B, N, Di]) #batch, n cells, input dim
+        :param x_mask: BoolTensor([B, N])
+        :return: List([Tensor([B, M, D])]), List([Tensor([H, B, N, M]), Tensor([H, B, N, M])])
+        """
+        x = self.input(x)  # [B, N, D]
+        x = self.pre_encoder(x, x_mask)
+        features = list()
+        alphas = list()
+        if self.no_zigzag:
+            l=0
+            for layer in get_module(self.gpu, self.encoder):
+                if l==0: #need to pass x_mask for first layer only
+                    _, x, alpha1, _ = layer(x, x_mask)  # [B, N, D], [B, M, D], [H, B, N, M], [H, B, N, M]
+                else:
+                    _, x, alpha1, _ = layer(x)
+                features.append(x)
+                alphas.append((alpha1))
+                l+=1
+            return {'features': features, 'alphas': alphas}
+
+        for layer in get_module(self.gpu, self.encoder):
+            x, h, alpha1, alpha2 = layer(x, x_mask)  # [B, N, D], [B, M, D], [H, B, N, M], [H, B, N, M]
+            features.append(h)
+            alphas.append((alpha1, alpha2))
+        return {'features': features, 'alphas': alphas}
+
+    def forward(self, x, x_mask):
+        """ Bidirectional inference
+        :param x: Tensor([B, N, Di]) #batch, n cells, input dim
+        :param x_mask: BoolTensor([B, N])
+        :return: Tensor([B, N, Do]), Tensor([B, N]), List([Tensor([H, B, N, M]), Tensor([H, B, N, M])]) * 2
+        """
+        bup = self.bottom_up(x, x_mask)
+        # go from final hidden representation to prediction for the set
+        set_rep = self.i_conv(bup['features'][-1])  # [B, M, 1] #batch, n inducing points at bottleneck, 1
+        set_rep = set_rep.squeeze(-1)  # [B, M]
+        o = self.output(set_rep)  # [B, num_targets]
+        return {'predictions': o, 'alphas': bup['alphas'], 'enc_hiddens': bup['features']}
+
+    def make_optimizer(self, args):
+        def _get_opt_(params):
+            if args.optimizer == 'adam':
+                optimizer = optim.Adam(params, lr=args.lr, betas=(args.beta1, args.beta2), weight_decay=args.weight_decay)
+            elif args.optimizer == 'sgd':
+                optimizer = torch.optim.SGD(params, lr=args.lr, momentum=args.momentum)
+            else:
+                assert 0, "args.optimizer should be either 'adam' or 'sgd'"
+            return optimizer
+        opt = _get_opt_(self.parameters())
+
+        #simple cross entropy loss
+        criterion = nn.CrossEntropyLoss()
+
+        return opt, criterion

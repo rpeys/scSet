@@ -309,7 +309,7 @@ def draw_attention(x, x_mask, alpha):
 @torch.no_grad()
 def validate_reconstruct_l2(epoch, val_loader, model, criterion, args, logger):
     start_time = time.time()
-    model.train()
+    model.train() #RB is this included by mistake? shouldnt it be in eval mode?
     criterion.train()
     l2_meter = AverageValueMeter()
     kl_meter = AverageValueMeter()

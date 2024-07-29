@@ -58,12 +58,14 @@ def main_worker(save_dir, args):
     else:
         logger = None
 
+    print("about to intialize deepspeed")
     deepspeed.init_distributed(dist_backend='nccl')
     torch.cuda.set_device(args.local_rank)
 
     # initialize datasets and loaders
-    train_dataset, val_dataset, train_loader, val_loader = get_datasets(args)
+    train_dataset, val_dataset, train_loader, val_loader, _ = get_datasets(args)
     model = SetVAE(args)
+    print("Model initialized")
     parameters = model.parameters()
 
     n_parameters = sum(p.numel() for p in parameters if p.requires_grad)
@@ -79,8 +81,6 @@ def main_worker(save_dir, args):
         pass
 
     optimizer, criterion = model.make_optimizer(args)
-
-
 
     # initialize the learning rate scheduler
     if args.scheduler == 'exponential':
@@ -118,6 +118,7 @@ def main_worker(save_dir, args):
             collate_fn=collate_fn,
             lr_scheduler=scheduler
         )
+    print("Deepspeed initialized")
 
     # resume checkpoints
     start_epoch = 0
@@ -223,8 +224,9 @@ def main_worker(save_dir, args):
 
 
 def main():
+    print("hi1")
     args = get_args()
-    save_dir = Path(args.log_dir)
+    save_dir = Path(args.log_dir) #defaults to current directory
     #if not (Path(save_dir)/"checkpoints").exists():
     #    (Path(save_dir)/"checkpoints").mkdir(exist_ok=True, parents=True)
     #if not (Path(save_dir)/"runs").exists():

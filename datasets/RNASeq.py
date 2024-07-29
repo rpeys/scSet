@@ -57,6 +57,8 @@ class scData(torch.utils.data.Dataset):
             pid_adata = self.adata[self.adata.obs[self.pid_col]==pid,:]
             # s is a tensor of size [N, Di] where N is the max number of cells and Di is the number of principal components
             if self.adata_layer == "pca":
+                if self.num_components is None:
+                    self.num_components = pid_adata.obsm['X_pca'].shape[1] # use all available PCs
                 s = torch.zeros(self.maxcells, self.num_components)
                 s[:len(pid_adata),:] = torch.from_numpy(pid_adata.obsm['X_pca'][:,:self.num_components])
             elif self.adata_layer == "hvg_lognorm":
@@ -64,8 +66,11 @@ class scData(torch.utils.data.Dataset):
                 s[:len(pid_adata),:] = torch.from_numpy(pid_adata.layers['lognorm'][:,pid_adata.var.highly_variable].todense())
             elif self.adata_layer == "hvg_raw":
                 raise NotImplementedError
+            elif self.adata_layer in ["X_scGPT", "X_scANVI"]:
+                s = torch.zeros(self.maxcells, pid_adata.obsm[self.adata_layer].shape[1])
+                s[:len(pid_adata),:] = torch.from_numpy(pid_adata.obsm[self.adata_layer])
             else:
-                raise ValueError("Must supply one of 'pca', 'hvg_lognorm', or 'hvg_raw' for adata_layer but {} was supplied.".format(self.adata_layer))
+                raise ValueError("Must supply one of 'pca', 'hvg_lognorm', 'X_scGPT' or 'hvg_raw' for adata_layer but {} was supplied.".format(self.adata_layer))
             # s_mask:[N, Di] True where there is no cell, False where there is a cell
             s_mask = torch.ones(self.maxcells, dtype=torch.bool)
             s_mask[:len(pid_adata)] = False
@@ -121,6 +126,7 @@ def build(args):
     full_adata = sc.read_h5ad(args.h5ad_loc)
     pid_col=args.pid_col
     num_pids = len(full_adata.obs[pid_col].unique())
+    num_groups = len(full_adata.obs[args.cat_col].unique())
     print("num_pids: " + str(num_pids))
     train_pids, val_pids = torch.utils.data.random_split(full_adata.obs[pid_col].unique(), [round(0.8*num_pids), round(0.2*num_pids)], generator=torch.Generator().manual_seed(0))
     train_dataset = scData(adata=full_adata, name=args.data_name+"_train", pid_col=pid_col, pids=train_pids, cat_col=args.cat_col, num_components=args.input_dim, cache_dir=os.path.dirname(args.cache_dir), adata_layer=args.adata_layer)
@@ -134,4 +140,4 @@ def build(args):
                             pin_memory=True, drop_last=False, num_workers=args.num_workers,
                             collate_fn=collate_fn, worker_init_fn=init_np_seed)
 
-    return train_dataset, val_dataset, train_loader, val_loader
+    return train_dataset, val_dataset, train_loader, val_loader, num_groups

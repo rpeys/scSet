@@ -50,6 +50,8 @@ def add_args(parser):
                         help='Whether to use batchnorm for MLP.')
     parser.add_argument('--residual', action='store_true',
                         help='Whether to use residual connections for MLP.')
+    parser.add_argument('--no_zigzag', action='store_true',
+                        help='Whether to directly pass hiddens between layers in the encoder.')
 
     # training options
     parser.add_argument('--optimizer', type=str, default='adam',
@@ -138,7 +140,7 @@ def add_args(parser):
                         help='Path where processed data will be cached for fast loading. Defaults to current working dir.')
     parser.add_argument('--adata_layer', default='pca', type=str,
                         help='Layer of the anndata object to use. Default pca.',
-                        choices=['pca', 'hvg_lognorm', 'hvg_raw'])
+                        choices=['pca', 'hvg_lognorm', 'hvg_raw', 'X_scGPT', 'X_scANVI'])
     parser.add_argument('--num_pcs', default=20, type=int,
                         help='Number of principal components to use. Default 20.')   
     parser.add_argument('--data_name', type=str,

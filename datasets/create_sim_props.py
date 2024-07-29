@@ -14,10 +14,10 @@ print("cuda available: " + str(torch.cuda.is_available()))
 
 #eventual args
 image_dir = "/home/rpeyser/GitHub/scSet/datasets/figures/simulated_props/"
-data_name = "props_exp_scvi_tsubtypes_0.25vs0.1c_dirstr100"
+data_name = "props_exp_scvi_tsubtypes_0.1vs0.05_dirstr30_1000pts"
 
 image_dir = image_dir + data_name + "/"
-if not os.path.exists(image_dir)
+if not os.path.exists(image_dir):
    # Create a new directory because it does not exist
    os.makedirs(image_dir)
 
@@ -32,15 +32,15 @@ cd45_adata.obs.celltype = cd45_adata.obs.Tcellsubtype.astype('str').replace('nan
 scvi.model.SCVI.setup_anndata(cd45_adata)
 
 #load trained scvi model
-with open("/localdata/rna_rep_learning/scset/scvi_data/cd45model.pkl", "rb") as f: # "wb" because we want to write in binary mode
+with open("/localdata/rna_rep_learning/scset/scvi_data/cd45model.pkl", "rb") as f:
     fullmodel = pickle.load(f)   
     
 #generate synthetic data
 cell_types = ["CD4 Cytotoxic", "CD8 Cytotoxic", "Helper 1", "Memory Cytotoxic", "B-cells", "CD14+ Monocytes"]
-dir_strength = 100
-cell_type_dirichlet_concentrations_1={"CD4 Cytotoxic":0.1*dir_strength, "CD8 Cytotoxic":0.25*dir_strength, "Helper 1":0.1625*dir_strength, "Memory Cytotoxic":0.1625*dir_strength, "B-cells":0.1625*dir_strength, "CD14+ Monocytes":0.1625*dir_strength}
-cell_type_dirichlet_concentrations_2={"CD4 Cytotoxic":0.25*dir_strength, "CD8 Cytotoxic":0.1*dir_strength, "Helper 1":0.1625*dir_strength, "Memory Cytotoxic":0.1625*dir_strength, "B-cells":0.1625*dir_strength, "CD14+ Monocytes":0.1625*dir_strength}
-npatients = 500
+dir_strength = 30
+cell_type_dirichlet_concentrations_1={"CD4 Cytotoxic":0.1*dir_strength, "CD8 Cytotoxic":0.05*dir_strength, "Helper 1":0.2*dir_strength, "Memory Cytotoxic":0.2*dir_strength, "B-cells":0.2*dir_strength, "CD14+ Monocytes":0.25*dir_strength}
+cell_type_dirichlet_concentrations_2={"CD4 Cytotoxic":0.05*dir_strength, "CD8 Cytotoxic":0.1*dir_strength, "Helper 1":0.2*dir_strength, "Memory Cytotoxic":0.2*dir_strength, "B-cells":0.2*dir_strength, "CD14+ Monocytes":0.25*dir_strength}
+npatients = 1000
 mean_ncells = 445
 total_cells_pp = scipy.stats.poisson.rvs(mean_ncells, size=npatients)
 sim_counts = np.empty((np.sum(total_cells_pp), cd45_adata.shape[1]))
@@ -71,7 +71,7 @@ plt.savefig(image_dir + "clustermap_celltypecounts.png")
 
 print("creating stacked barplots of cell type proportions...")
 viz_props(sim_metadata)
-plt.savefig(image_dir + "stackedbar_celltypefrac.png")      
+plt.savefig(image_dir + "stackedbar_celltypefrac.png", bbox_inches='tight')
 
 # pseudobulk of these sample
 pseudobulk_counts = pd.DataFrame(sim_counts, index=sim_metadata.patient, columns=cd45_adata.var.index).reset_index().groupby("patient").sum()

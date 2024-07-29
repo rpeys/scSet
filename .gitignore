@@ -11,5 +11,11 @@ figures/images
 figures/images*
 checkpoints
 .DS_Store
+datasets/figures/
 batch_size.json
+metrics/pytorch_structural_losses/Makefile
+.gitignore
 tensorboard_logs/
+notebooks/lightning_logs/
+notebooks/logs/
+param_logs/
