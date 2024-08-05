@@ -52,6 +52,8 @@ def add_args(parser):
                         help='Whether to use residual connections for MLP.')
     parser.add_argument('--no_zigzag', action='store_true',
                         help='Whether to directly pass hiddens between layers in the encoder.')
+    parser.add_argument('--num_seeds', type=int, default=100,
+                        help='Number of seeds (prev. referred to as inducing points) in PMA layers')
 
     # training options
     parser.add_argument('--optimizer', type=str, default='adam',
@@ -76,7 +78,7 @@ def add_args(parser):
                         help='Dropout rate.')
     parser.add_argument('--epochs', default=200, type=int,
                         help='Total epochs to train')
-    parser.add_argument('--seed', default=None, type=int,
+    parser.add_argument('--seed', default=42, type=int,
                         help='Random seed for reproducibility')
     parser.add_argument('--matcher', default='chamfer', type=str, choices=('hungarian', 'chamfer', 'all'),
                         help='Matcher for reconstruction loss computation')

@@ -1,0 +1,51 @@
+#! /bin/bash
+
+input_dim=50
+max_outputs=700
+hidden_dim=64
+num_heads=4
+adata_layer="pca"
+batch_size=32
+pid_col="patient"
+cat_col="group"
+num_seeds=100
+
+lr=1e-4
+epochs=100
+kl_warmup_epochs=50
+scheduler="linear"
+dataset_type=rnaseq
+data_name=syn_pheno_10k
+model_name=syn_pheno_10k_settransformer_v1
+log_dir=/home/rpeyser/GitHub/scSet
+h5ad_loc="/data/rna_rep_learning/scset/synthetic_pheno_data/pheno_cd8t_fc4_10000_patients_HVGonly_scGPT.h5ad"
+cache_dir="/data/rna_rep_learning/scset/synthetic_pheno_datacache/"
+num_workers=2 #run out of CPU memory with 4
+
+deepspeed --include=localhost:2,3 --master_port 8111 train_settransformer.py \
+  --kl_warmup_epochs ${kl_warmup_epochs} \
+  --input_dim ${input_dim} \
+  --batch_size ${batch_size} \
+  --max_outputs ${max_outputs} \
+  --hidden_dim ${hidden_dim} \
+  --num_heads ${num_heads} \
+  --num_seeds ${num_seeds} \
+  --lr ${lr} \
+  --epochs ${epochs} \
+  --dataset_type ${dataset_type} \
+  --adata_layer ${adata_layer} \
+  --cache_dir ${cache_dir} \
+  --data_name ${data_name} \
+  --model_name ${model_name} \
+  --h5ad_loc ${h5ad_loc} \
+  --pid_col ${pid_col} \
+  --cat_col ${cat_col} \
+  --resume_optimizer \
+  --scheduler ${scheduler} \
+  --slot_att \
+  --ln \
+  --distributed \
+  --deepspeed_config batch_size.json \
+  --num_workers ${num_workers}
+echo "Done"
+exit 0
