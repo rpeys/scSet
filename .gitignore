@@ -19,3 +19,5 @@ tensorboard_logs/
 notebooks/lightning_logs/
 notebooks/logs/
 param_logs/
+tensorboard_logs_OLD/
+running_logs/
